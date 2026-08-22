@@ -1,0 +1,61 @@
+C:\Users\Vladimir\Downloads\P1 (1)\myOpenGL\myOpenGL\bin\Debug\myOpenGL.exe
+C:\Users\Vladimir\Downloads\P1 (1)\myOpenGL\myOpenGL\bin\Debug\myOpenGL.pdb
+C:\Users\Vladimir\Downloads\P1 (1)\myOpenGL\myOpenGL\obj\Debug\myOpenGL.Form1.resources
+C:\Users\Vladimir\Downloads\P1 (1)\myOpenGL\myOpenGL\obj\Debug\myOpenGL.Properties.Resources.resources
+C:\Users\Vladimir\Downloads\P1 (1)\myOpenGL\myOpenGL\obj\Debug\myOpenGL.csproj.GenerateResource.Cache
+C:\Users\Vladimir\Downloads\P1 (1)\myOpenGL\myOpenGL\obj\Debug\myOpenGL.exe
+C:\Users\Vladimir\Downloads\P1 (1)\myOpenGL\myOpenGL\obj\Debug\myOpenGL.pdb
+C:\Users\ran70\Downloads\P1\myOpenGL\myOpenGL\bin\Debug\myOpenGL.exe
+C:\Users\ran70\Downloads\P1\myOpenGL\myOpenGL\bin\Debug\myOpenGL.pdb
+C:\Users\ran70\Downloads\P1\myOpenGL\myOpenGL\obj\Debug\myOpenGL.csproj.AssemblyReference.cache
+C:\Users\ran70\Downloads\P1\myOpenGL\myOpenGL\obj\Debug\myOpenGL.Form1.resources
+C:\Users\ran70\Downloads\P1\myOpenGL\myOpenGL\obj\Debug\myOpenGL.Properties.Resources.resources
+C:\Users\ran70\Downloads\P1\myOpenGL\myOpenGL\obj\Debug\myOpenGL.csproj.GenerateResource.cache
+C:\Users\ran70\Downloads\P1\myOpenGL\myOpenGL\obj\Debug\myOpenGL.csproj.CoreCompileInputs.cache
+C:\Users\ran70\Downloads\P1\myOpenGL\myOpenGL\obj\Debug\myOpenGL.exe
+C:\Users\ran70\Downloads\P1\myOpenGL\myOpenGL\obj\Debug\myOpenGL.pdb
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\myOpenGL\myOpenGL\bin\Debug\myOpenGL.exe
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\myOpenGL\myOpenGL\bin\Debug\myOpenGL.pdb
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\myOpenGL\myOpenGL\obj\Debug\myOpenGL.csproj.AssemblyReference.cache
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\myOpenGL\myOpenGL\obj\Debug\myOpenGL.Form1.resources
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\myOpenGL\myOpenGL\obj\Debug\myOpenGL.Properties.Resources.resources
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\myOpenGL\myOpenGL\obj\Debug\myOpenGL.csproj.GenerateResource.cache
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\myOpenGL\myOpenGL\obj\Debug\myOpenGL.csproj.CoreCompileInputs.cache
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\myOpenGL\myOpenGL\obj\Debug\myOpenGL.exe
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\myOpenGL\myOpenGL\obj\Debug\myOpenGL.pdb
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\‏‏myOpenGL - עותק\myOpenGL\bin\Debug\myOpenGL.exe
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\‏‏myOpenGL - עותק\myOpenGL\bin\Debug\myOpenGL.pdb
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\‏‏myOpenGL - עותק\myOpenGL\obj\Debug\myOpenGL.csproj.AssemblyReference.cache
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\‏‏myOpenGL - עותק\myOpenGL\obj\Debug\myOpenGL.Form1.resources
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\‏‏myOpenGL - עותק\myOpenGL\obj\Debug\myOpenGL.Properties.Resources.resources
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\‏‏myOpenGL - עותק\myOpenGL\obj\Debug\myOpenGL.csproj.GenerateResource.cache
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\‏‏myOpenGL - עותק\myOpenGL\obj\Debug\myOpenGL.csproj.CoreCompileInputs.cache
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\‏‏myOpenGL - עותק\myOpenGL\obj\Debug\myOpenGL.exe
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\‏‏myOpenGL - עותק\myOpenGL\obj\Debug\myOpenGL.pdb
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\task\myOpenGL\bin\Debug\myOpenGL.exe
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\task\myOpenGL\bin\Debug\myOpenGL.pdb
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\task\myOpenGL\obj\Debug\myOpenGL.csproj.AssemblyReference.cache
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\task\myOpenGL\obj\Debug\myOpenGL.Form1.resources
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\task\myOpenGL\obj\Debug\myOpenGL.Properties.Resources.resources
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\task\myOpenGL\obj\Debug\myOpenGL.csproj.GenerateResource.cache
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\task\myOpenGL\obj\Debug\myOpenGL.csproj.CoreCompileInputs.cache
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\task\myOpenGL\obj\Debug\myOpenGL.exe
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\P1\task\myOpenGL\obj\Debug\myOpenGL.pdb
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\task\myOpenGL\bin\Debug\myOpenGL.exe
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\task\myOpenGL\bin\Debug\myOpenGL.pdb
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\task\myOpenGL\obj\Debug\myOpenGL.csproj.AssemblyReference.cache
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\task\myOpenGL\obj\Debug\myOpenGL.Form1.resources
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\task\myOpenGL\obj\Debug\myOpenGL.Properties.Resources.resources
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\task\myOpenGL\obj\Debug\myOpenGL.csproj.GenerateResource.cache
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\task\myOpenGL\obj\Debug\myOpenGL.csproj.CoreCompileInputs.cache
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\task\myOpenGL\obj\Debug\myOpenGL.exe
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\task\myOpenGL\obj\Debug\myOpenGL.pdb
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\graphic-project\myOpenGL\bin\Debug\myOpenGL.exe
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\graphic-project\myOpenGL\bin\Debug\myOpenGL.pdb
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\graphic-project\myOpenGL\obj\Debug\myOpenGL.csproj.AssemblyReference.cache
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\graphic-project\myOpenGL\obj\Debug\myOpenGL.Form1.resources
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\graphic-project\myOpenGL\obj\Debug\myOpenGL.Properties.Resources.resources
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\graphic-project\myOpenGL\obj\Debug\myOpenGL.csproj.GenerateResource.cache
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\graphic-project\myOpenGL\obj\Debug\myOpenGL.csproj.CoreCompileInputs.cache
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\graphic-project\myOpenGL\obj\Debug\myOpenGL.exe
+C:\Users\ran70\Desktop\תואר\גרפיקה ממוחשבת\graphic-project\myOpenGL\obj\Debug\myOpenGL.pdb
