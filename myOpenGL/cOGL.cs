@@ -7,7 +7,7 @@ namespace OpenGL
     class cOGL
     {
         Control p;
-        Character character;
+        Character character = null;
         int Width;
         int Height;
 
@@ -17,7 +17,16 @@ namespace OpenGL
             Width = p.Width;
             Height = p.Height; 
             InitializeGL();
-            character = new Character(0, 0, 0);
+            DrawAll();
+        }
+
+        public void SetCharacter(Character character)
+        {
+            this.character = character;
+            character.OnAnimationStep += () => 
+            {
+                DrawAll();
+            };
         }
 
         ~cOGL()
@@ -91,10 +100,13 @@ namespace OpenGL
 
        
 
+        bool isAnimationStarted = false;
+
         public void DrawAll()
         {
             if (m_uint_DC == 0 || m_uint_RC == 0)
                 return;
+
 
             GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
             GL.glLoadIdentity();
@@ -106,7 +118,10 @@ namespace OpenGL
 
             Earth.DrawEarth(); // משטח הרצפה התלת-מימדי
             DrawAxes();
-            character.DrawCharacter();
+            if(character != null)
+            {
+                character.DrawCharacter();
+            }
             GL.glFlush();
             WGL.wglSwapBuffers(m_uint_DC);
         }
