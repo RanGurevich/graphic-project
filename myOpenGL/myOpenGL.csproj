@@ -45,7 +45,7 @@
   <ItemGroup>
     <Compile Include="Character.cs" />
     <Compile Include="cOGL.cs" />
-    <Compile Include="Earth.cs" />
+    <Compile Include="WorldSkyBox.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -84,6 +84,9 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Content Include="pics\cube-1.jpg" />
+    <Content Include="pics\cube-6.jpg" />
+    <Content Include="pics\cube2-4.jpg" />
     <Content Include="pics\grass.png" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

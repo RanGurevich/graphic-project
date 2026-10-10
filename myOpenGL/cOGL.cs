@@ -100,28 +100,73 @@ namespace OpenGL
 
        
 
-        bool isAnimationStarted = false;
+        // ===== משתני מצלמה (מבט חופשי כמו במשחקי מחשב) =====
+        public float CameraPitch = -25.0f;     // זווית הטיה מעלה/מטה (סביב ציר X)
+        public float CameraYaw = -30.0f;       // זווית סיבוב ימינה/שמאלה (סביב ציר Z)
+        public float CameraDistance = 10.0f;   // מרחק המצלמה מהדמות / מרכז
+        public float MouseSensitivity = 0.2f;  // רגישות עכבר
+
+        public void RotateCamera(float deltaX, float deltaY)
+        {
+            // סיבוב אופקי (Yaw) סביב ציר Z
+            CameraYaw += deltaX * MouseSensitivity;
+            while (CameraYaw >= 360.0f) CameraYaw -= 360.0f;
+            while (CameraYaw < 0.0f) CameraYaw += 360.0f;
+
+            // סיבוב הדמות בהתאמה ימינה ושמאלה (רק בציר האופקי ולא בגבהים)
+            if (character != null)
+            {
+                character.CHARACTER_angle -= deltaX * MouseSensitivity;
+                while (character.CHARACTER_angle >= 360.0f) character.CHARACTER_angle -= 360.0f;
+                while (character.CHARACTER_angle < 0.0f) character.CHARACTER_angle += 360.0f;
+            }
+
+            // סיבוב אנכי (Pitch) - משנה רק את זווית המצלמה למעלה/למטה, ללא השפעה על גובה/הטיית הדמות
+            CameraPitch -= deltaY * MouseSensitivity;
+
+            // הגבלת זווית שלא תתהפך (בין 89- ל-89 מעלות)
+            if (CameraPitch > 89.0f) CameraPitch = 89.0f;
+            if (CameraPitch < -89.0f) CameraPitch = -89.0f;
+
+            DrawAll();
+        }
+
+        public void ZoomCamera(int wheelDelta)
+        {
+            CameraDistance -= (wheelDelta / 120.0f) * 1.5f;
+            if (CameraDistance < 1.0f) CameraDistance = 1.0f;
+            if (CameraDistance > 45.0f) CameraDistance = 45.0f;
+            DrawAll();
+        }
 
         public void DrawAll()
         {
             if (m_uint_DC == 0 || m_uint_RC == 0)
                 return;
 
-
             GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
             GL.glLoadIdentity();
 
-            // Move the camera back and tilt it so we can see the 3D object from outside and above
-            GL.glTranslatef(0.0f, 0.0f, -10.0f);
-            GL.glRotatef(-45.0f, 1.0f, 0.0f, 0.0f); // tilt camera
-            GL.glRotatef(-30.0f, 0.0f, 0.0f, 1.0f); // rotate around Z
+            // 1. מיקום המצלמה (מרחק וזוויות מבט מעכבר)
+            GL.glTranslatef(0.0f, 0.0f, -CameraDistance);
+            GL.glRotatef(CameraPitch, 1.0f, 0.0f, 0.0f); // עלייה / ירידה של המבט (הסתכלות לשמיים או לרצפה)
+            GL.glRotatef(CameraYaw, 0.0f, 0.0f, 1.0f);   // סיבוב ימינה / שמאלה
 
-            Earth.DrawEarth(); // משטח הרצפה התלת-מימדי
+            // 2. תנועת המצלמה במעקב אחרי הדמות
+            if (character != null)
+            {
+                GL.glTranslatef(-character.X, -character.Y, -character.Z);
+            }
+
+            // 3. ציור העולם - הקוביה (דשא, שמיים וקירות) והדמות באותה מערכת עולם!
+            WorldSkyBox.DrawEarth();
+
             DrawAxes();
             if(character != null)
             {
                 character.DrawCharacter();
             }
+
             GL.glFlush();
             WGL.wglSwapBuffers(m_uint_DC);
         }
@@ -178,9 +223,15 @@ namespace OpenGL
         {
             Width = p.Width;
             Height = p.Height;
+            if (Height == 0) Height = 1;
             GL.glViewport(0, 0, Width, Height);
+            GL.glMatrixMode(GL.GL_PROJECTION);
+            GL.glLoadIdentity();
+            GLUT.gluPerspective(45.0, ((double)Width) / Height, 1.0, 1000.0);
+            GL.glMatrixMode(GL.GL_MODELVIEW);
             DrawAll();
         }
+
 
 
 
@@ -204,6 +255,8 @@ namespace OpenGL
             
             GL.glMatrixMode(GL.GL_MODELVIEW);
             GL.glLoadIdentity();
+
+            WorldSkyBox.GenerateTextures();
         }
 
         /// <summary>

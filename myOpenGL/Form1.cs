@@ -14,16 +14,106 @@ namespace myOpenGL
     {
         cOGL cGL;
         private Character character;
+
+        // משתני שליטה במבט עכבר
+        private Point lastMousePos;
+        private bool isMouseLookActive = true;
+        private bool isFirstMouseMove = true;
+        private bool isCenteringCursor = false;
+
         public Form1()
         {
             InitializeComponent();
             cGL = new cOGL(panel1);
-            panel1.MouseClick += panel1_MouseClick;
             character = new Character(0, 0, 0);
             cGL.SetCharacter(character);
 
+            // אירועי עכבר למבט כמו במשחקי מחשב
+            panel1.MouseDown += panel1_MouseDown;
+            panel1.MouseMove += panel1_MouseMove;
+            panel1.MouseClick += panel1_MouseClick;
+            panel1.MouseWheel += panel1_MouseWheel;
+            this.MouseWheel += panel1_MouseWheel;
+            this.Activated += (s, e) => { isFirstMouseMove = true; };
+
             // חובה כדי שהטופס יתפוס את הלחיצות על המקלדת לפני פקדים אחרים (כמו הפאנל)
             this.KeyPreview = true;
+        }
+
+        private void SetMouseLook(bool active)
+        {
+            isMouseLookActive = active;
+            isFirstMouseMove = true;
+            if (isMouseLookActive)
+            {
+                panel1.Cursor = Cursors.Cross;
+                this.Text = "OpenGL Skybox [מבט עכבר פעיל | ESC לשחרור סמן | גלגלת לזום | WASD להליכה]";
+            }
+            else
+            {
+                panel1.Cursor = Cursors.Default;
+                this.Text = "OpenGL Skybox [סמן משוחרר | לחץ על המסך לנעילה מחדש | גרור בעכבר למבט]";
+            }
+        }
+
+        private void panel1_MouseDown(object sender, MouseEventArgs e)
+        {
+            lastMousePos = e.Location;
+            if (!isMouseLookActive && e.Button == MouseButtons.Left)
+            {
+                SetMouseLook(true);
+            }
+        }
+
+        private void panel1_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isCenteringCursor)
+            {
+                isCenteringCursor = false;
+                return;
+            }
+
+            if (!isMouseLookActive || Form.ActiveForm != this)
+            {
+                if (e.Button == MouseButtons.Left || e.Button == MouseButtons.Right)
+                {
+                    int dx = e.X - lastMousePos.X;
+                    int dy = e.Y - lastMousePos.Y;
+                    lastMousePos = e.Location;
+                    if (dx != 0 || dy != 0)
+                    {
+                        cGL.RotateCamera(dx, dy);
+                    }
+                }
+                return;
+            }
+
+            Point center = new Point(panel1.Width / 2, panel1.Height / 2);
+
+            if (isFirstMouseMove)
+            {
+                isFirstMouseMove = false;
+                isCenteringCursor = true;
+                Cursor.Position = panel1.PointToScreen(center);
+                lastMousePos = center;
+                return;
+            }
+
+            int deltaX = e.X - center.X;
+            int deltaY = e.Y - center.Y;
+
+            if (deltaX != 0 || deltaY != 0)
+            {
+                cGL.RotateCamera(deltaX, deltaY);
+
+                isCenteringCursor = true;
+                Cursor.Position = panel1.PointToScreen(center);
+            }
+        }
+
+        private void panel1_MouseWheel(object sender, MouseEventArgs e)
+        {
+            cGL.ZoomCamera(e.Delta);
         }
 
         private void panel1_Paint(object sender, PaintEventArgs e)
@@ -38,13 +128,19 @@ namespace myOpenGL
 
         private void panel1_MouseClick(object sender, MouseEventArgs e)
         {
-            cGL.GetOpenGLCoords(e.X, e.Y);
+            if (e.Button == MouseButtons.Right || (ModifierKeys & Keys.Control) == Keys.Control)
+            {
+                cGL.GetOpenGLCoords(e.X, e.Y);
+            }
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             switch (keyData)
             {
+                case Keys.Escape:
+                    SetMouseLook(!isMouseLookActive);
+                    return true;
                 case Keys.Y:
                     _ = character.MoveJointByDegree(Character.JointType.LEFT_SHOULDER, 3f, 10);
                     break;
@@ -105,7 +201,7 @@ namespace myOpenGL
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
+            SetMouseLook(true);
         }
     }
 }
