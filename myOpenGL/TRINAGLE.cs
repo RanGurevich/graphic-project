@@ -5,7 +5,7 @@ namespace OpenGL
 {
     /// <summary>
     /// מפלצת פירמידה (TRINAGLE) היורשת ממחלקת Monster (ו-ShadowObject).
-    /// המפלצת מיוצגת על ידי פירמידה תלת-ממדית עם עין/ליבה מיסטית,
+    /// המפלצת מיוצגת על ידי פירמידה תלת-ממדית פשוטה ונקייה של OpenGL,
     /// נעה בקפיצות אקראיות על גבי רצפת העולם (FloorHeight),
     /// ומטילה צל מדויק על הקרקע בהתאם לתנועת הקפיצה.
     /// </summary>
@@ -40,6 +40,30 @@ namespace OpenGL
         /// גוון צבע כחול
         /// </summary>
         public float ColorB { get; set; } = 0.15f;
+
+        #endregion
+
+        #region מאפייני טקסטורה (Texture Support via TextureManager)
+
+        /// <summary>
+        /// האם להשתמש בטקסטורה בעת ציור הפירמידה (במידה ונטענה)
+        /// </summary>
+        public bool UseTexture { get; set; } = false;
+
+        /// <summary>
+        /// מזהה הטקסטורה של הפירמידה ב-OpenGL (נטענת באמצעות TextureManager)
+        /// </summary>
+        public uint TextureId { get; set; } = 0;
+
+        /// <summary>
+        /// טוען טקסטורה מותאמת לפירמידה מתוך קובץ באמצעות מחלקת התשתית TextureManager
+        /// </summary>
+        /// <param name="texturePath">נתיב קובץ התמונה (למשל: pics\pyramid.png)</param>
+        public void LoadTexture(string texturePath)
+        {
+            TextureId = TextureManager.LoadTexture(texturePath);
+            UseTexture = (TextureId != 0);
+        }
 
         #endregion
 
@@ -128,13 +152,7 @@ namespace OpenGL
         /// </summary>
         public void Update()
         {
-            DateTime now = DateTime.Now;
-            float dt = (float)(now - lastUpdateTime).TotalSeconds;
-            lastUpdateTime = now;
-
-            if (dt > 0.1f) dt = 0.1f;
-            if (dt <= 0.0f) return;
-
+            if (!MonsterPhysics.TryGetDeltaTime(ref lastUpdateTime, out float dt)) return;
             UpdatePhysics(dt);
         }
 
@@ -145,11 +163,7 @@ namespace OpenGL
         {
             if (!IsAlive) return;
 
-            if (landingSquishTime > 0.0f)
-            {
-                landingSquishTime -= dt;
-                if (landingSquishTime < 0.0f) landingSquishTime = 0.0f;
-            }
+            MonsterPhysics.UpdateTimer(ref landingSquishTime, dt);
 
             // בדיקת התנגשות ומגע עם הדמות הראשית:
             // אם הפירמידה נוגעת בדמות, היא עוצרת לחלוטין במקום עד שהדמות תזוז!
@@ -186,36 +200,26 @@ namespace OpenGL
                 }
                 else
                 {
-                    float nextX = jumpStartX + (jumpTargetX - jumpStartX) * progress;
-                    float nextY = jumpStartY + (jumpTargetY - jumpStartY) * progress;
+                    // חישוב מיקום מיועד ובדיקה שאינו חודר לדמות לאורך מסלול הקפיצה
+                    float nextX = MonsterPhysics.Lerp(jumpStartX, jumpTargetX, progress);
+                    float nextY = MonsterPhysics.Lerp(jumpStartY, jumpTargetY, progress);
 
-                    if (GlobalCharacter != null)
+                    if (MonsterPhysics.WillCollideAlongPath(nextX, nextY, EffectiveCollisionRadius))
                     {
-                        float dx = nextX - GlobalCharacter.X;
-                        float dy = nextY - GlobalCharacter.Y;
-                        float dist = (float)Math.Sqrt(dx * dx + dy * dy);
-                        float minDist = EffectiveCollisionRadius + GlobalCharacter.CollisionRadius;
-
-                        if (dist < minDist)
-                        {
-                            // עצירה מיידית מול הדמות ונחיתה על הרצפה ללא חדירה!
-                            CheckAndResolveCharacterCollision();
-                            IsJumping = false;
-                            jumpTimer = 0.0f;
-                            Z = BaseZ;
-                            landingSquishTime = 0.18f;
-                            waitTimer = (float)(rand.NextDouble() * 1.5 + 0.5);
-                            return;
-                        }
+                        // עצירה מיידית מול הדמות ונחיתה על הרצפה ללא חדירה!
+                        CheckAndResolveCharacterCollision();
+                        IsJumping = false;
+                        jumpTimer = 0.0f;
+                        Z = BaseZ;
+                        landingSquishTime = 0.18f;
+                        waitTimer = (float)(rand.NextDouble() * 1.5 + 0.5);
+                        return;
                     }
 
-                    // אינטרפולציה ליניארית במישור X, Y
+                    // אינטרפולציה ליניארית במישור X, Y ותנועה פרבולית בציר Z (גובה הקפיצה)
                     X = nextX;
                     Y = nextY;
-
-                    // תנועה פרבולית בציר Z (גובה הקפיצה)
-                    float arc = (float)Math.Sin(progress * Math.PI);
-                    Z = BaseZ + arc * CurrentJumpHeight;
+                    Z = BaseZ + MonsterPhysics.CalculateJumpArc(progress, CurrentJumpHeight);
                 }
             }
             else
@@ -242,24 +246,20 @@ namespace OpenGL
             // משך קפיצה וגובה אקראיים מעט לשונות טבעית
             JumpDuration = (float)(rand.NextDouble() * 0.25 + 0.55); // 0.55 - 0.80 שניות
             CurrentJumpHeight = (float)(rand.NextDouble() * 1.0 + 1.4); // 1.4 - 2.4 יחידות גובה
-            float jumpDistance = (float)(rand.NextDouble() * 1.8 + 1.2); // 1.2 - 3.0 יחידות מרחק
 
-            // חישוב כיוון קפיצה אקראי (זווית 0 עד 360 מעלות)
-            float angleRad = (float)(rand.NextDouble() * 2.0 * Math.PI);
+            // בחירת יעד אקראי במרחק 1.2 - 3.0 יחידות תוך שמירה על גבולות ה-Skybox
+            MonsterPhysics.PickRandomWaypoint(
+                jumpStartX, jumpStartY,
+                1.2f, 3.0f,
+                rand,
+                out jumpTargetX, out jumpTargetY,
+                0.45f);
 
-            // בדיקת גבולות העולם: אם המפלצת קרובה לקצה (מעל 28 יחידות), נכוון אותה חזרה למרכז
-            float distFromCenter = (float)Math.Sqrt(X * X + Y * Y);
-            if (distFromCenter > 25.0f)
+            // סיבוב הפירמידה לכיוון הקפיצה (חזית הפירמידה פונה לכיוון התנועה)
+            if (MonsterPhysics.TryCalculateFaceAngle(jumpStartX, jumpStartY, jumpTargetX, jumpTargetY, out float angle))
             {
-                angleRad = (float)Math.Atan2(-Y, -X) + (float)((rand.NextDouble() - 0.5) * 0.8);
+                RotationAngle = angle;
             }
-
-            // חישוב יעד הקפיצה
-            jumpTargetX = X + (float)Math.Cos(angleRad) * jumpDistance;
-            jumpTargetY = Y + (float)Math.Sin(angleRad) * jumpDistance;
-
-            // סיבוב המפלצת לכיוון הקפיצה (עם חזית הפירמידה קדימה)
-            RotationAngle = (float)(angleRad * 180.0 / Math.PI) - 90.0f;
         }
 
         #endregion
@@ -283,7 +283,7 @@ namespace OpenGL
             if (IsJumping)
             {
                 float progress = jumpTimer / JumpDuration;
-                float arc = (float)Math.Sin(progress * Math.PI);
+                float arc = MonsterPhysics.CalculateJumpArc(progress, 1.0f);
                 scaleZ = 1.0f + 0.30f * arc;    // מתיחה לגובה בעת קפיצה
                 scaleXY = 1.0f - 0.12f * arc;   // היצרות בבסיס
             }
@@ -312,6 +312,12 @@ namespace OpenGL
             float ny = h / len;
             float nz = halfW / len;
 
+            bool bindTex = UseTexture && TextureId != 0 && !isForShadow;
+            if (bindTex)
+            {
+                TextureManager.Bind(TextureId);
+            }
+
             // ==========================================
             // ציור פאות הפירמידה (GL_TRIANGLES)
             // ==========================================
@@ -323,8 +329,11 @@ namespace OpenGL
                 GL.glNormal3f(0.0f, -ny, nz);
                 GL.glColor3f(ColorR, ColorG, ColorB);
             }
+            if (bindTex) GL.glTexCoord2f(0.5f, 1.0f);
             GL.glVertex3f(apexX, apexY, apexZ);
+            if (bindTex) GL.glTexCoord2f(0.0f, 0.0f);
             GL.glVertex3f(v0X, v0Y, v0Z);
+            if (bindTex) GL.glTexCoord2f(1.0f, 0.0f);
             GL.glVertex3f(v1X, v1Y, v1Z);
 
             // --- פאה ימנית ---
@@ -333,8 +342,11 @@ namespace OpenGL
                 GL.glNormal3f(ny, 0.0f, nz);
                 GL.glColor3f(ColorR * 0.85f, ColorG * 0.85f, ColorB * 0.85f);
             }
+            if (bindTex) GL.glTexCoord2f(0.5f, 1.0f);
             GL.glVertex3f(apexX, apexY, apexZ);
+            if (bindTex) GL.glTexCoord2f(0.0f, 0.0f);
             GL.glVertex3f(v1X, v1Y, v1Z);
+            if (bindTex) GL.glTexCoord2f(1.0f, 0.0f);
             GL.glVertex3f(v2X, v2Y, v2Z);
 
             // --- פאה אחורית ---
@@ -343,8 +355,11 @@ namespace OpenGL
                 GL.glNormal3f(0.0f, ny, nz);
                 GL.glColor3f(ColorR * 0.70f, ColorG * 0.70f, ColorB * 0.70f);
             }
+            if (bindTex) GL.glTexCoord2f(0.5f, 1.0f);
             GL.glVertex3f(apexX, apexY, apexZ);
+            if (bindTex) GL.glTexCoord2f(0.0f, 0.0f);
             GL.glVertex3f(v2X, v2Y, v2Z);
+            if (bindTex) GL.glTexCoord2f(1.0f, 0.0f);
             GL.glVertex3f(v3X, v3Y, v3Z);
 
             // --- פאה שמאלית ---
@@ -353,8 +368,11 @@ namespace OpenGL
                 GL.glNormal3f(-ny, 0.0f, nz);
                 GL.glColor3f(ColorR * 0.80f, ColorG * 0.80f, ColorB * 0.80f);
             }
+            if (bindTex) GL.glTexCoord2f(0.5f, 1.0f);
             GL.glVertex3f(apexX, apexY, apexZ);
+            if (bindTex) GL.glTexCoord2f(0.0f, 0.0f);
             GL.glVertex3f(v3X, v3Y, v3Z);
+            if (bindTex) GL.glTexCoord2f(1.0f, 0.0f);
             GL.glVertex3f(v0X, v0Y, v0Z);
 
             GL.glEnd();
@@ -368,53 +386,22 @@ namespace OpenGL
                 GL.glNormal3f(0.0f, 0.0f, -1.0f);
                 GL.glColor3f(ColorR * 0.45f, ColorG * 0.45f, ColorB * 0.45f);
             }
+            if (bindTex) GL.glTexCoord2f(0.0f, 0.0f);
             GL.glVertex3f(v0X, v0Y, v0Z);
+            if (bindTex) GL.glTexCoord2f(0.0f, 1.0f);
             GL.glVertex3f(v3X, v3Y, v3Z);
+            if (bindTex) GL.glTexCoord2f(1.0f, 1.0f);
             GL.glVertex3f(v2X, v2Y, v2Z);
+            if (bindTex) GL.glTexCoord2f(1.0f, 0.0f);
             GL.glVertex3f(v1X, v1Y, v1Z);
             GL.glEnd();
 
-            // ==========================================
-            // עין מפלצת מיסטית בחזית הפירמידה
-            // ==========================================
-            if (!isForShadow)
+            if (bindTex)
             {
-                DrawEye(halfW, h);
+                TextureManager.Unbind();
             }
 
             GL.glPopMatrix();
-        }
-
-        /// <summary>
-        /// ציור עין מיסטית בחזית הפירמידה
-        /// </summary>
-        private void DrawEye(float halfW, float h)
-        {
-            float eyeY = -halfW * 0.52f;
-            float eyeZ = h * 0.42f;
-            float eyeRadius = 0.16f;
-
-            // לבן העין / רקע זהוב
-            GL.glDisable(GL.GL_LIGHTING);
-            GL.glColor3f(1.0f, 0.95f, 0.4f);
-            GL.glBegin(GL.GL_POLYGON);
-            for (int i = 0; i < 8; i++)
-            {
-                double a = i * Math.PI * 2.0 / 8.0;
-                GL.glVertex3f((float)Math.Cos(a) * eyeRadius, eyeY, eyeZ + (float)Math.Sin(a) * eyeRadius);
-            }
-            GL.glEnd();
-
-            // אישון כהה במרכז
-            GL.glColor3f(0.1f, 0.05f, 0.05f);
-            GL.glBegin(GL.GL_POLYGON);
-            for (int i = 0; i < 8; i++)
-            {
-                double a = i * Math.PI * 2.0 / 8.0;
-                GL.glVertex3f((float)Math.Cos(a) * (eyeRadius * 0.48f), eyeY - 0.005f, eyeZ + (float)Math.Sin(a) * (eyeRadius * 0.48f));
-            }
-            GL.glEnd();
-            GL.glEnable(GL.GL_LIGHTING);
         }
 
         /// <summary>

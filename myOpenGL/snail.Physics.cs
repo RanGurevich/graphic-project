@@ -42,13 +42,7 @@ namespace OpenGL
         /// </summary>
         public void Update()
         {
-            DateTime now = DateTime.Now;
-            float dt = (float)(now - _lastUpdateTime).TotalSeconds;
-            _lastUpdateTime = now;
-
-            if (dt > 0.1f) dt = 0.1f;
-            if (dt <= 0.0f) return;
-
+            if (!MonsterPhysics.TryGetDeltaTime(ref _lastUpdateTime, out float dt)) return;
             UpdatePhysics(dt);
         }
 
@@ -94,26 +88,18 @@ namespace OpenGL
                 }
                 else
                 {
-                    // חישוב מיקום מיועד ובדיקה שאינו חודר לדמות
-                    float nextX = _crawlStartX + (_crawlTargetX - _crawlStartX) * progress;
-                    float nextY = _crawlStartY + (_crawlTargetY - _crawlStartY) * progress;
+                    // חישוב מיקום מיועד ובדיקה שאינו חודר לדמות לאורך מסלול התנועה
+                    float nextX = MonsterPhysics.Lerp(_crawlStartX, _crawlTargetX, progress);
+                    float nextY = MonsterPhysics.Lerp(_crawlStartY, _crawlTargetY, progress);
 
-                    if (GlobalCharacter != null)
+                    if (MonsterPhysics.WillCollideAlongPath(nextX, nextY, EffectiveCollisionRadius))
                     {
-                        float dx = nextX - GlobalCharacter.X;
-                        float dy = nextY - GlobalCharacter.Y;
-                        float dist = (float)Math.Sqrt(dx * dx + dy * dy);
-                        float minDist = EffectiveCollisionRadius + GlobalCharacter.CollisionRadius;
-
-                        if (dist < minDist)
-                        {
-                            // עצירה מיידית מול הדמות ללא חדירה!
-                            CheckAndResolveCharacterCollision();
-                            IsCrawling = false;
-                            _crawlTimer = 0.0f;
-                            _waitTimer = (float)(_rand.NextDouble() * 1.5 + 0.5);
-                            return;
-                        }
+                        // עצירה מיידית מול הדמות ללא חדירה!
+                        CheckAndResolveCharacterCollision();
+                        IsCrawling = false;
+                        _crawlTimer = 0.0f;
+                        _waitTimer = (float)(_rand.NextDouble() * 1.5 + 0.5);
+                        return;
                     }
 
                     // התקדמות ליניארית חלקה על הקרקע
@@ -144,26 +130,20 @@ namespace OpenGL
             _crawlStartX = X;
             _crawlStartY = Y;
 
-            // זווית וכיוון אקראיים
-            double angle = _rand.NextDouble() * Math.PI * 2.0;
-            float distance = (float)(_rand.NextDouble() * 1.8 + 0.8);
+            // בחירת יעד אקראי בגבולות ה-Skybox וחישוב משך הזחילה
+            float distance = MonsterPhysics.PickRandomWaypoint(
+                _crawlStartX, _crawlStartY,
+                0.8f, 2.6f,
+                _rand,
+                out _crawlTargetX, out _crawlTargetY,
+                0.44f);
 
             _crawlDuration = distance / Math.Max(0.1f, CrawlSpeed);
 
-            float targetX = _crawlStartX + (float)Math.Cos(angle) * distance;
-            float targetY = _crawlStartY + (float)Math.Sin(angle) * distance;
-
-            // שמירה על גבולות העולם (הסייג של ה-Skybox)
-            float bound = WorldSkyBox.SkyboxSize * 0.44f;
-            _crawlTargetX = Math.Max(-bound, Math.Min(bound, targetX));
-            _crawlTargetY = Math.Max(-bound, Math.Min(bound, targetY));
-
             // סיבוב כיוון הראש והקונכייה לעבר יעד הזחילה
-            float dx = _crawlTargetX - _crawlStartX;
-            float dy = _crawlTargetY - _crawlStartY;
-            if (Math.Abs(dx) > 0.01f || Math.Abs(dy) > 0.01f)
+            if (MonsterPhysics.TryCalculateFaceAngle(_crawlStartX, _crawlStartY, _crawlTargetX, _crawlTargetY, out float angle))
             {
-                RotationAngle = (float)(Math.Atan2(dx, -dy) * 180.0 / Math.PI);
+                RotationAngle = angle;
             }
         }
 

@@ -47,13 +47,7 @@ namespace OpenGL
         /// </summary>
         public void Update()
         {
-            DateTime now = DateTime.Now;
-            float dt = (float)(now - _lastUpdateTime).TotalSeconds;
-            _lastUpdateTime = now;
-
-            if (dt > 0.1f) dt = 0.1f;
-            if (dt <= 0.0f) return;
-
+            if (!MonsterPhysics.TryGetDeltaTime(ref _lastUpdateTime, out float dt)) return;
             UpdatePhysics(dt);
         }
 
@@ -67,11 +61,7 @@ namespace OpenGL
             _idleTime += dt;
 
             // עדכון מעיכת נחיתה
-            if (_landingSquishTimer > 0.0f)
-            {
-                _landingSquishTimer -= dt;
-                if (_landingSquishTimer < 0.0f) _landingSquishTimer = 0.0f;
-            }
+            MonsterPhysics.UpdateTimer(ref _landingSquishTimer, dt);
 
             // בדיקת התנגשות ומגע עם הדמות הראשית:
             // אם הפטריה נוגעת בדמות, היא עוצרת לחלוטין במקום עד שהדמות תזוז!
@@ -110,35 +100,26 @@ namespace OpenGL
                 }
                 else
                 {
-                    float nextX = _jumpStartX + (_jumpTargetX - _jumpStartX) * progress;
-                    float nextY = _jumpStartY + (_jumpTargetY - _jumpStartY) * progress;
+                    // חישוב מיקום מיועד ובדיקה שאינו חודר לדמות לאורך מסלול הקפיצה
+                    float nextX = MonsterPhysics.Lerp(_jumpStartX, _jumpTargetX, progress);
+                    float nextY = MonsterPhysics.Lerp(_jumpStartY, _jumpTargetY, progress);
 
-                    if (GlobalCharacter != null)
+                    if (MonsterPhysics.WillCollideAlongPath(nextX, nextY, EffectiveCollisionRadius))
                     {
-                        float dx = nextX - GlobalCharacter.X;
-                        float dy = nextY - GlobalCharacter.Y;
-                        float dist = (float)Math.Sqrt(dx * dx + dy * dy);
-                        float minDist = EffectiveCollisionRadius + GlobalCharacter.CollisionRadius;
-
-                        if (dist < minDist)
-                        {
-                            // עצירה מיידית מול הדמות ונחיתה על הרצפה ללא חדירה!
-                            CheckAndResolveCharacterCollision();
-                            IsJumping = false;
-                            _jumpTimer = 0.0f;
-                            Z = BaseZ;
-                            _landingSquishTimer = 0.18f;
-                            _waitTimer = (float)(_rand.NextDouble() * 1.5 + 0.5);
-                            return;
-                        }
+                        // עצירה מיידית מול הדמות ונחיתה על הרצפה ללא חדירה!
+                        CheckAndResolveCharacterCollision();
+                        IsJumping = false;
+                        _jumpTimer = 0.0f;
+                        Z = BaseZ;
+                        _landingSquishTimer = 0.18f;
+                        _waitTimer = (float)(_rand.NextDouble() * 1.5 + 0.5);
+                        return;
                     }
 
                     // תנועה במסלול קשתי (Parabolic Jump Arc)
                     X = nextX;
                     Y = nextY;
-
-                    float arc = (float)Math.Sin(progress * Math.PI);
-                    Z = BaseZ + JumpHeight * arc;
+                    Z = BaseZ + MonsterPhysics.CalculateJumpArc(progress, JumpHeight);
                 }
             }
             else
@@ -164,24 +145,18 @@ namespace OpenGL
             _jumpStartX = X;
             _jumpStartY = Y;
 
-            // זווית קפיצה אקראית במרחב
-            double angle = _rand.NextDouble() * Math.PI * 2.0;
-            float distance = (float)(_rand.NextDouble() * 1.5 + 0.5);
-
-            float targetX = _jumpStartX + (float)Math.Cos(angle) * distance;
-            float targetY = _jumpStartY + (float)Math.Sin(angle) * distance;
-
-            // שמירה על גבולות העולם (הסייג של ה-Skybox)
-            float bound = WorldSkyBox.SkyboxSize * 0.45f;
-            _jumpTargetX = Math.Max(-bound, Math.Min(bound, targetX));
-            _jumpTargetY = Math.Max(-bound, Math.Min(bound, targetY));
+            // בחירת יעד אקראי בגבולות ה-Skybox
+            MonsterPhysics.PickRandomWaypoint(
+                _jumpStartX, _jumpStartY,
+                0.5f, 2.0f,
+                _rand,
+                out _jumpTargetX, out _jumpTargetY,
+                0.45f);
 
             // סיבוב הפטריה לכיוון הקפיצה
-            float dx = _jumpTargetX - _jumpStartX;
-            float dy = _jumpTargetY - _jumpStartY;
-            if (Math.Abs(dx) > 0.01f || Math.Abs(dy) > 0.01f)
+            if (MonsterPhysics.TryCalculateFaceAngle(_jumpStartX, _jumpStartY, _jumpTargetX, _jumpTargetY, out float angle))
             {
-                RotationAngle = (float)(Math.Atan2(dx, -dy) * 180.0 / Math.PI);
+                RotationAngle = angle;
             }
         }
 

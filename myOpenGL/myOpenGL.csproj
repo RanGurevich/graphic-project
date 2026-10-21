@@ -44,7 +44,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ShadowObject.cs" />
+    <Compile Include="TextureManager.cs" />
     <Compile Include="Monster.cs" />
+    <Compile Include="MonsterPhysics.cs" />
     <Compile Include="TRINAGLE.cs" />
     <Compile Include="mushroom.cs" />
     <Compile Include="mushroom.Textures.cs">
