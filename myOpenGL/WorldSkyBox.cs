@@ -43,7 +43,7 @@ namespace OpenGL
                 @"..\..\pics\cube2-4.jpg", // 2: קיר שמאלי
                 @"..\..\pics\cube2-4.jpg", // 3: קיר ימני
                 @"..\..\pics\cube-6.jpg",  // 4: תקרה / שמיים (cube-6)
-                @"..\..\pics\cube-1.jpg",  // 5: רצפה / דשא (cube-1)
+                @"..\..\pics\cube-6.jpg",  // 5: רצפה / דשא (cube-1)
             };
             for (int i = 0; i < 6; i++)
             {

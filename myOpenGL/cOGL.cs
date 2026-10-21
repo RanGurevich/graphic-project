@@ -1,5 +1,6 @@
 using myOpenGL;
 using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace OpenGL
@@ -8,25 +9,358 @@ namespace OpenGL
     {
         Control p;
         Character character = null;
+        Grass grass = new Grass();
+        public Lake lake;
+        public Lake Lake
+        {
+            get { return lake; }
+            set { lake = value; }
+        }
         int Width;
         int Height;
+
+        /// <summary>
+        /// רשימת 5 מפלצות הפירמידה (TRINAGLE) בעולם
+        /// </summary>
+        public List<TRINAGLE> Monsters = new List<TRINAGLE>();
+
+        /// <summary>
+        /// רשימת 7 מפלצות פטריה כתומה (mushroom) בעולם
+        /// </summary>
+        public List<mushroom> Mushrooms = new List<mushroom>();
+
+        /// <summary>
+        /// תאימות לגישה לפטריה בודדת (מחזירה את הפטריה הראשונה ברשימה)
+        /// </summary>
+        public mushroom MushroomMonster => Mushrooms.Count > 0 ? Mushrooms[0] : null;
+
+        /// <summary>
+        /// רשימת 6 מפלצות חילזון (3 אדומים ו-3 כחולים) בעולם
+        /// </summary>
+        public List<snail> Snails = new List<snail>();
+
+        private static readonly Random _spawnRand = new Random();
 
         public cOGL(Control pb)
         {
             p = pb;
             Width = p.Width;
             Height = p.Height; 
+            lake = new Lake(10.0f, 10.0f, 7.5f, grass);
             InitializeGL();
+            
+            // פיזור רנדומלי חכם של כל המפלצות במרחב העולם
+            List<float[]> occupiedPositions = new List<float[]>();
+            Initialize7Mushrooms(occupiedPositions);
+            Initialize6Snails(occupiedPositions);
+            Initialize5Monsters(occupiedPositions);
+
+            DrawAll();
+        }
+
+        /// <summary>
+        /// מחולל מיקום אקראי על היבשה שאינו בתוך האגם ושומר על מרחק ממפלצות אחרות
+        /// </summary>
+        private float[] GetRandomSpawnPosition(List<float[]> occupied, float minDistance = 2.8f)
+        {
+            float lakeX = 10.0f;
+            float lakeY = 10.0f;
+            float lakeAvoidRadius = 8.5f;
+            float maxBound = 15.0f;
+
+            for (int attempt = 0; attempt < 250; attempt++)
+            {
+                // הגרלת מיקום במרחב הדשא
+                float x = (float)(_spawnRand.NextDouble() * (maxBound * 2.0f) - maxBound);
+                float y = (float)(_spawnRand.NextDouble() * (maxBound * 2.0f) - maxBound);
+
+                // בדיקה שלא נוחת בתוך מי האגם
+                float distToLake = (float)Math.Sqrt((x - lakeX) * (x - lakeX) + (y - lakeY) * (y - lakeY));
+                if (distToLake < lakeAvoidRadius) continue;
+
+                // בדיקה שאינו צמוד מדיי לנקודת ההתחלה של השחקן (0, 0)
+                float distToSpawn = (float)Math.Sqrt(x * x + y * y);
+                if (distToSpawn < 2.0f) continue;
+
+                // בדיקה שלא קרוב מדיי למפלצת אחרת שכבר נוצרה
+                bool tooClose = false;
+                if (occupied != null)
+                {
+                    foreach (var pos in occupied)
+                    {
+                        float d = (float)Math.Sqrt((x - pos[0]) * (x - pos[0]) + (y - pos[1]) * (y - pos[1]));
+                        if (d < minDistance)
+                        {
+                            tooClose = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!tooClose)
+                {
+                    var result = new float[] { x, y };
+                    occupied?.Add(result);
+                    return result;
+                }
+            }
+
+            // גיבוי אם לא נמצא מיקום אידיאלי
+            float fallbackX = (float)(_spawnRand.NextDouble() * 10.0f - 5.0f);
+            float fallbackY = (float)(_spawnRand.NextDouble() * 10.0f - 5.0f);
+            var fallback = new float[] { fallbackX, fallbackY };
+            occupied?.Add(fallback);
+            return fallback;
+        }
+
+        /// <summary>
+        /// מאתחל 7 מפלצות פטריה (mushroom) בפיזור אקראי רחב וטבעי בעולם
+        /// </summary>
+        public void Initialize7Mushrooms(List<float[]> occupied = null)
+        {
+            Mushrooms.Clear();
+            int[] healths = { 120, 100, 110, 130, 80, 150, 100 };
+            float[] scales = { 1.05f, 0.95f, 1.0f, 1.10f, 0.85f, 1.25f, 1.0f };
+
+            for (int i = 0; i < 7; i++)
+            {
+                float[] pos = GetRandomSpawnPosition(occupied, 3.2f);
+                Mushrooms.Add(new mushroom(healths[i], pos[0], pos[1])
+                {
+                    Scale = scales[i],
+                    RotationAngle = (float)(_spawnRand.NextDouble() * 360.0)
+                });
+            }
+        }
+
+        /// <summary>
+        /// מאתחל 6 חלזונות (3 אדומים ו-3 כחולים) בפיזור אקראי במרחב העולם
+        /// </summary>
+        public void Initialize6Snails(List<float[]> occupied = null)
+        {
+            Snails.Clear();
+
+            // 3 חלזונות אדומים (Red Snails)
+            for (int i = 0; i < 3; i++)
+            {
+                float[] pos = GetRandomSpawnPosition(occupied, 3.0f);
+                int health = 90 + i * 15;
+                float scale = 0.95f + (float)_spawnRand.NextDouble() * 0.25f;
+
+                Snails.Add(new snail(SnailColor.Red, health, pos[0], pos[1])
+                {
+                    Scale = scale,
+                    RotationAngle = (float)(_spawnRand.NextDouble() * 360.0)
+                });
+            }
+
+            // 3 חלזונות כחולים (Blue Snails)
+            for (int i = 0; i < 3; i++)
+            {
+                float[] pos = GetRandomSpawnPosition(occupied, 3.0f);
+                int health = 80 + i * 20;
+                float scale = 0.95f + (float)_spawnRand.NextDouble() * 0.25f;
+
+                Snails.Add(new snail(SnailColor.Blue, health, pos[0], pos[1])
+                {
+                    Scale = scale,
+                    RotationAngle = (float)(_spawnRand.NextDouble() * 360.0)
+                });
+            }
+        }
+
+        /// <summary>
+        /// מאתחל 5 מפלצות TRINAGLE בפיזור אקראי רחב בעולם
+        /// </summary>
+        public void Initialize5Monsters(List<float[]> occupied = null)
+        {
+            Monsters.Clear();
+            var configs = new[]
+            {
+                new { Health = 100, R = 0.95f, G = 0.25f, B = 0.20f },
+                new { Health = 120, R = 0.95f, G = 0.65f, B = 0.10f },
+                new { Health = 150, R = 0.70f, G = 0.20f, B = 0.90f },
+                new { Health =  80, R = 0.15f, G = 0.85f, B = 0.35f },
+                new { Health = 200, R = 0.20f, G = 0.75f, B = 0.95f }
+            };
+
+            foreach (var cfg in configs)
+            {
+                float[] pos = GetRandomSpawnPosition(occupied, 3.2f);
+                Monsters.Add(new TRINAGLE(cfg.Health, pos[0], pos[1], cfg.R, cfg.G, cfg.B)
+                {
+                    RotationAngle = (float)(_spawnRand.NextDouble() * 360.0)
+                });
+            }
+        }
+
+        public void CreateLake(float centerX, float centerY, float radius)
+        {
+            lake = new Lake(centerX, centerY, radius, grass);
+            if (character != null)
+            {
+                lake.CharacterRef = character;
+            }
             DrawAll();
         }
 
         public void SetCharacter(Character character)
         {
             this.character = character;
+            Monster.GlobalCharacter = character;
+
+            // חיבור בדיקת התנגשויות תנועה של הדמות מול כל המפלצות בעולם
+            character.CanMoveValidator = CanCharacterMoveTo;
+
+            // חיבור ביצוע תקיפות (אגרוף ובעיטה) מול מפלצות בקרבת מקום
+            character.AttackHandler = (charRef, damage) => HandleCharacterAttack(charRef, damage);
+
+            if (lake != null)
+            {
+                lake.CharacterRef = character;
+            }
             character.OnAnimationStep += () => 
             {
                 DrawAll();
             };
+        }
+
+        /// <summary>
+        /// מסיר מפלצת שמתה מהעולם ומשחרר את האובייקט שלה מהזיכרון
+        /// </summary>
+        public void RemoveMonster(Monster monster)
+        {
+            if (monster == null) return;
+
+            monster.IsVisible = false;
+
+            if (monster is mushroom m)
+            {
+                Mushrooms.Remove(m);
+            }
+            else if (monster is snail s)
+            {
+                Snails.Remove(s);
+            }
+            else if (monster is TRINAGLE t)
+            {
+                Monsters.Remove(t);
+            }
+        }
+
+        /// <summary>
+        /// מטפל בתקיפה (אגרוף או בעיטה) של הדמות מול מפלצת:
+        /// בודק מפלצות קרובות בחזית, גורם 15-40 נזק, ומעלים מפלצת שמתה מהזיכרון
+        /// </summary>
+        public Monster HandleCharacterAttack(Character charRef, int damage)
+        {
+            if (charRef == null) return null;
+
+            float charX = charRef.X;
+            float charY = charRef.Y;
+            float charAngle = charRef.CHARACTER_angle;
+
+            // וקטור כיוון הפנים האמיתי של הדמות (חזית הדמות מול המפלצות - ציר מינוס Y במרחב המקומי)
+            float rad = charAngle * (float)Math.PI / 180f;
+            float forwardX = (float)Math.Sin(rad);
+            float forwardY = -(float)Math.Cos(rad);
+
+            Monster targetMonster = null;
+            float minDistance = float.MaxValue;
+
+            foreach (var monster in GetAllMonsters())
+            {
+                if (monster == null || !monster.IsAlive || !monster.IsVisible) continue;
+
+                float dx = monster.X - charX;
+                float dy = monster.Y - charY;
+                float dist = (float)Math.Sqrt(dx * dx + dy * dy);
+
+                // טווח פגיעה: מרחק מגע קרוב מאוד בחזית
+                float hitRange = charRef.CollisionRadius + monster.EffectiveCollisionRadius + 0.85f;
+
+                if (dist <= hitRange)
+                {
+                    // בדיקת זווית: המפלצת חייבת להיות מול פני הדמות (dot > 0.25f, חרוט של כ-75 מעלות) ולא מאחוריה!
+                    float dot = (dist > 0.001f) ? (dx * forwardX + dy * forwardY) / dist : 1.0f;
+
+                    if (dot > 0.25f)
+                    {
+                        if (dist < minDistance)
+                        {
+                            minDistance = dist;
+                            targetMonster = monster;
+                        }
+                    }
+                }
+            }
+
+            if (targetMonster != null)
+            {
+                targetMonster.TakeDamage(damage);
+
+                // אם החיים ירדו ל-0 ומטה - המפלצת נעלמת ומשתחררת מהזיכרון
+                if (!targetMonster.IsAlive || targetMonster.CurrentHealth <= 0)
+                {
+                    RemoveMonster(targetMonster);
+                }
+
+                DrawAll();
+                return targetMonster;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// מחזיר את כל המפלצות הפעילות והחיות בעולם (פירמידות, פטריות, חלזונות)
+        /// </summary>
+        public IEnumerable<Monster> GetAllMonsters()
+        {
+            if (Monsters != null)
+            {
+                for (int i = 0; i < Monsters.Count; i++)
+                {
+                    if (Monsters[i] != null && Monsters[i].IsAlive && Monsters[i].IsVisible)
+                        yield return Monsters[i];
+                }
+            }
+            if (Mushrooms != null)
+            {
+                for (int i = 0; i < Mushrooms.Count; i++)
+                {
+                    if (Mushrooms[i] != null && Mushrooms[i].IsAlive && Mushrooms[i].IsVisible)
+                        yield return Mushrooms[i];
+                }
+            }
+            if (Snails != null)
+            {
+                for (int i = 0; i < Snails.Count; i++)
+                {
+                    if (Snails[i] != null && Snails[i].IsAlive && Snails[i].IsVisible)
+                        yield return Snails[i];
+                }
+            }
+        }
+
+        /// <summary>
+        /// בודק האם הדמות יכולה לנוע מ-(currX, currY) אל (nextX, nextY) מבלי לחדור לתחום של אף מפלצת
+        /// </summary>
+        public bool CanCharacterMoveTo(float currX, float currY, float nextX, float nextY, float charRadius)
+        {
+            foreach (var monster in GetAllMonsters())
+            {
+                float currDist = monster.DistanceTo(currX, currY);
+                float nextDist = monster.DistanceTo(nextX, nextY);
+                float minDist = charRadius + monster.EffectiveCollisionRadius;
+
+                // אם המיקום החדש נמצא בתוך שטח המפלצת, והדמות מתקרבת או שוהה בתוכה - התנועה נחסמת!
+                if (nextDist < minDist && nextDist <= currDist + 0.001f)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         ~cOGL()
@@ -144,7 +478,7 @@ namespace OpenGL
             if (m_uint_DC == 0 || m_uint_RC == 0)
                 return;
 
-            GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+            GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT | GL.GL_STENCIL_BUFFER_BIT);
             GL.glLoadIdentity();
 
             // 1. מיקום המצלמה (מרחק וזוויות מבט מעכבר)
@@ -161,10 +495,49 @@ namespace OpenGL
             // 3. ציור העולם - הקוביה (דשא, שמיים וקירות) והדמות באותה מערכת עולם!
             WorldSkyBox.DrawEarth();
 
+            // ציור הדשא הדינמי על גבי cube-1
+            if (grass != null)
+            {
+                grass.Draw(character);
+            }
+
+            // ציור האגם על גבי משטח הרצפה
+            if (lake != null)
+            {
+                lake.Draw();
+            }
+
             DrawAxes();
             if(character != null)
             {
                 character.DrawCharacter();
+            }
+
+            // ציור 5 מפלצות הפירמידה (TRINAGLE)
+            if (Monsters != null)
+            {
+                for (int i = 0; i < Monsters.Count; i++)
+                {
+                    Monsters[i].DrawMonster();
+                }
+            }
+
+            // ציור 7 מפלצות הפטריה (mushroom)
+            if (Mushrooms != null)
+            {
+                for (int i = 0; i < Mushrooms.Count; i++)
+                {
+                    Mushrooms[i].DrawMonster();
+                }
+            }
+
+            // ציור 6 מפלצות החילזון (3 אדומים ו-3 כחולים)
+            if (Snails != null)
+            {
+                for (int i = 0; i < Snails.Count; i++)
+                {
+                    Snails[i].DrawMonster();
+                }
             }
 
             GL.glFlush();
@@ -187,6 +560,7 @@ namespace OpenGL
             pfd.iPixelType = (byte)(WGL.PFD_TYPE_RGBA);
             pfd.cColorBits = 32;
             pfd.cDepthBits = 32;
+            pfd.cStencilBits = 32;
             pfd.iLayerType = (byte)(WGL.PFD_MAIN_PLANE);
 
             int pixelFormatIndex = 0;

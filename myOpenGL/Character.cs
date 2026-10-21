@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace myOpenGL
 {
-    public class Character
+    public class Character : ShadowObject
     {
         private float xPosition;
         private float yPosition;
@@ -23,15 +23,31 @@ namespace myOpenGL
         public bool IsTurningRight;
         private bool isWalkingLoopRunning = false;
 
+        /// <summary>
+        /// רדיוס ההתנגשות של הדמות (Collision Radius) במישור X, Y
+        /// </summary>
+        public float CollisionRadius { get; set; } = 0.65f;
+
+        /// <summary>
+        /// פונקציית בדיקת תנועה מול מפלצות ומכשולים (currX, currY, targetX, targetY, charRadius)
+        /// מחזירה true אם המיקום החדש מותר לתנועה, ו-false אם התנועה נחסמת עקב התנגשות עם מפלצת
+        /// </summary>
+        public Func<float, float, float, float, float, bool> CanMoveValidator { get; set; }
+
+        /// <summary>
+        /// מהירות ההליכה של הדמות (הוכפלה פי 2 מ-0.1f ל-0.2f לפי דרישה)
+        /// </summary>
+        public float WalkSpeed { get; set; } = 0.2f;
+
         public async void UpdateMovementLoop()
         {
             if (isWalkingLoopRunning) return;
             isWalkingLoopRunning = true;
 
-            float walkSpeed = 0.1f;
+            float walkSpeed = WalkSpeed;
             float turnSpeed = 5.0f;
             float swingMaxAngle = 45f;
-            float swingSpeed = 0.3f;
+            float swingSpeed = 0.45f; // התאמת קצב הנפת הידיים והרגליים למהירות הכפולה
             float time = 0;
 
             while (IsMovingForward || IsMovingBackward || IsTurningLeft || IsTurningRight)
@@ -43,42 +59,83 @@ namespace myOpenGL
                 // Move
                 if (IsMovingForward || IsMovingBackward)
                 {
-                    float dir = IsMovingForward ? 1f : -1f;
+                    float moveDir = IsMovingForward ? 1f : -1f;
                     float rad = CHARACTER_angle * (float)Math.PI / 180f;
-                    xPosition -= (float)Math.Sin(rad) * walkSpeed * dir;
-                    yPosition += (float)Math.Cos(rad) * walkSpeed * dir;
+                    float deltaX = (float)Math.Sin(rad) * walkSpeed * moveDir;
+                    float deltaY = -(float)Math.Cos(rad) * walkSpeed * moveDir;
 
-                    // Animation
-                    time += swingSpeed;
-                    float legSwing = (float)Math.Sin(time) * swingMaxAngle;
-                    float armSwing = (float)Math.Sin(time) * swingMaxAngle;
+                    float proposedX = xPosition + deltaX;
+                    float proposedY = yPosition + deltaY;
 
-                    LEFT_HIP_angle = legSwing;
-                    RIGHT_HIP_angle = -legSwing;
-                    
-                    // Bend knees slightly when swinging backward
-                    LEFT_KNEE_angle = legSwing < 0 ? 40 : 10;
-                    RIGHT_KNEE_angle = -legSwing < 0 ? 40 : 10;
+                    // בדיקה האם המיקום החדש מותר לתנועה או חסום עקב התנגשות עם מפלצת
+                    bool canMoveFull = CanMoveValidator == null || CanMoveValidator(xPosition, yPosition, proposedX, proposedY, CollisionRadius);
 
-                    // Arms swing opposite to legs
-                    LEFT_SHOULDER_angle = -armSwing;
-                    RIGHT_SHOULDER_angle = armSwing;
+                    if (canMoveFull)
+                    {
+                        xPosition = proposedX;
+                        yPosition = proposedY;
+                    }
+                    else
+                    {
+                        // בדיקת החלקה (Wall Sliding): אם תנועה באלכסון נחסמת, בדיקה אם ציר X או ציר Y בודד פנוי
+                        bool canMoveX = CanMoveValidator != null && CanMoveValidator(xPosition, yPosition, proposedX, yPosition, CollisionRadius);
+                        bool canMoveY = CanMoveValidator != null && CanMoveValidator(xPosition, yPosition, xPosition, proposedY, CollisionRadius);
+
+                        if (canMoveX)
+                        {
+                            xPosition = proposedX;
+                        }
+                        else if (canMoveY)
+                        {
+                            yPosition = proposedY;
+                        }
+                        // אם שני הצירים חסומים - הדמות נעצרת ולא יכולה ללכת קדימה!
+                    }
+
+                    // Animation (רק אם הדמות אינה מבצעת כעת אנימציית אגרוף או בעיטה)
+                    if (!isAttacking)
+                    {
+                        float walkDir = IsMovingForward ? 1f : -1f;
+                        time += swingSpeed * walkDir;
+                        float swing = (float)Math.Sin(time) * swingMaxAngle;
+
+                        // רגליים: הנפה קדימה (ערך שלילי מניף לעבר החזית)
+                        LEFT_HIP_angle = -swing;
+                        RIGHT_HIP_angle = swing;
+                        
+                        // כיפוף ברכיים: כשהרגל מונפת לאחור (ערך חיובי), הברך מתכופפת לאחור (40 מעלות)
+                        LEFT_KNEE_angle = (-swing > 0) ? 40f : 10f;
+                        RIGHT_KNEE_angle = (swing > 0) ? 40f : 10f;
+
+                        // ידיים: תנועה נגדית מדויקת לרגליים (רגל שמאל קדימה -> יד ימין קדימה)
+                        LEFT_SHOULDER_angle = swing;
+                        RIGHT_SHOULDER_angle = -swing;
+
+                        LEFT_ELBOW_angle = -30f;
+                        RIGHT_ELBOW_angle = -30f;
+                    }
                 }
                 else
                 {
-                    ResetPose();
+                    if (!isAttacking)
+                    {
+                        ResetPose();
+                    }
                 }
 
                 OnAnimationStep?.Invoke();
                 await Task.Delay(16); // ~60 FPS
             }
 
-            ResetPose();
+            if (!isAttacking)
+            {
+                ResetPose();
+            }
             OnAnimationStep?.Invoke();
             isWalkingLoopRunning = false;
         }
 
-        private void ResetPose()
+        public void ResetPose()
         {
             LEFT_SHOULDER_angle = 10;
             RIGHT_SHOULDER_angle = -10;
@@ -86,7 +143,149 @@ namespace myOpenGL
             RIGHT_HIP_angle = -5;
             LEFT_KNEE_angle = 10;
             RIGHT_KNEE_angle = 10;
+            LEFT_ELBOW_angle = -30;
+            RIGHT_ELBOW_angle = -30;
+            HEAD_angle = 0;
         }
+
+        #region פעולות לחימה ותקיפה (Combat: Punch & Kick)
+
+        /// <summary>
+        /// האם הדמות נמצאת כעת במהלך אנימציית תקיפה
+        /// </summary>
+        public bool IsAttacking => isAttacking;
+        private bool isAttacking = false;
+
+        private static readonly Random _attackRand = new Random();
+
+        /// <summary>
+        /// פונקציית טיפול בפגיעה במפלצת: (דמות, כמות נזק 15-40) -> מחזירה את המפלצת שנפגעה או null
+        /// </summary>
+        public Func<Character, int, Monster> AttackHandler { get; set; }
+
+        /// <summary>
+        /// ביצוע בעיטה (Kick) - מופעלת על ידי מקש ימני בעכבר.
+        /// שילוח בעיטה קדימה לעבר החזית (מול פני הדמות) ופגיעה במפלצת שמולה.
+        /// </summary>
+        public async void PerformKick()
+        {
+            if (isAttacking) return;
+            isAttacking = true;
+
+            int damage = _attackRand.Next(15, 41);
+
+            try
+            {
+                // שלב 1: כיווץ והרמת הברך קדימה לקראת שילוח הבעיטה (Windup / Chamber)
+                await Task.WhenAll(
+                    AnimateJoint(JointType.RIGHT_HIP, -60f, 12),
+                    AnimateJoint(JointType.RIGHT_KNEE, 75f, 12),
+                    AnimateJoint(JointType.LEFT_HIP, 10f, 12),
+                    AnimateJoint(JointType.LEFT_KNEE, 10f, 12),
+                    AnimateJoint(JointType.LEFT_SHOULDER, 20f, 12),
+                    AnimateJoint(JointType.LEFT_ELBOW, -60f, 12),
+                    AnimateJoint(JointType.RIGHT_SHOULDER, -20f, 12),
+                    AnimateJoint(JointType.RIGHT_ELBOW, -45f, 12)
+                );
+
+                // שלב 2: שילוח הבעיטה ישר קדימה בעוצמה (Snap Kick Strike) לעבר המפלצת שמול הדמות
+                await Task.WhenAll(
+                    AnimateJoint(JointType.RIGHT_HIP, -85f, 10),
+                    AnimateJoint(JointType.RIGHT_KNEE, 0f, 10),
+                    AnimateJoint(JointType.LEFT_SHOULDER, 30f, 10),
+                    AnimateJoint(JointType.RIGHT_SHOULDER, -30f, 10)
+                );
+
+                // שיא הפגיעה של הבעיטה: בדיקת פגיעה מול מפלצת והורדת 15-40 חיים
+                AttackHandler?.Invoke(this, damage);
+
+                // השהייה קצרצרה ביותר
+                await Task.Delay(4);
+
+                // שלב 3: החזרת הרגל ואיפוס חלק של כל המפרקים (Recovery)
+                await Task.WhenAll(
+                    AnimateJoint(JointType.RIGHT_HIP, -5f, 14),
+                    AnimateJoint(JointType.RIGHT_KNEE, 10f, 14),
+                    AnimateJoint(JointType.LEFT_HIP, 5f, 14),
+                    AnimateJoint(JointType.LEFT_KNEE, 10f, 14),
+                    AnimateJoint(JointType.LEFT_SHOULDER, 10f, 14),
+                    AnimateJoint(JointType.LEFT_ELBOW, -30f, 14),
+                    AnimateJoint(JointType.RIGHT_SHOULDER, -10f, 14),
+                    AnimateJoint(JointType.RIGHT_ELBOW, -30f, 14),
+                    AnimateJoint(JointType.HEAD, 0f, 14)
+                );
+            }
+            finally
+            {
+                ResetPose();
+                OnAnimationStep?.Invoke();
+                isAttacking = false;
+            }
+        }
+
+        /// <summary>
+        /// ביצוע אגרוף (Punch) - מופעל על ידי מקש שמאלי בעכבר.
+        /// שילוח אגרוף קדימה לעבר החזית (מול פני הדמות) ופגיעה במפלצת שמולה.
+        /// </summary>
+        public async void PerformPunch()
+        {
+            if (isAttacking) return;
+            isAttacking = true;
+
+            int damage = _attackRand.Next(15, 41);
+
+            try
+            {
+                // שלב 1: דריכת האגרוף לאחור ועמידת קרב (Cock / Windup)
+                await Task.WhenAll(
+                    AnimateJoint(JointType.RIGHT_SHOULDER, 30f, 10),
+                    AnimateJoint(JointType.RIGHT_ELBOW, -80f, 10),
+                    AnimateJoint(JointType.LEFT_SHOULDER, -30f, 10),
+                    AnimateJoint(JointType.LEFT_ELBOW, -45f, 10),
+                    AnimateJoint(JointType.LEFT_HIP, -15f, 10),
+                    AnimateJoint(JointType.LEFT_KNEE, 15f, 10),
+                    AnimateJoint(JointType.RIGHT_HIP, 15f, 10),
+                    AnimateJoint(JointType.RIGHT_KNEE, 15f, 10),
+                    AnimateJoint(JointType.HEAD, -5f, 10)
+                );
+
+                // שלב 2: שילוח האגרוף הישר קדימה בעוצמה (Straight Punch Impact) לעבר המפלצת שמול הדמות
+                await Task.WhenAll(
+                    AnimateJoint(JointType.RIGHT_SHOULDER, -85f, 9),
+                    AnimateJoint(JointType.RIGHT_ELBOW, -5f, 9),
+                    AnimateJoint(JointType.LEFT_SHOULDER, 20f, 9),
+                    AnimateJoint(JointType.LEFT_ELBOW, -75f, 9),
+                    AnimateJoint(JointType.HEAD, 0f, 9)
+                );
+
+                // שיא הפגיעה של האגרוף: בדיקת פגיעה מול מפלצת והורדת 15-40 חיים
+                AttackHandler?.Invoke(this, damage);
+
+                // השהייה קצרצרה ביותר
+                await Task.Delay(4);
+
+                // שלב 3: החזרת היד ואיפוס כל המפרקים לעמידה רגילה (Recovery)
+                await Task.WhenAll(
+                    AnimateJoint(JointType.RIGHT_SHOULDER, -10f, 12),
+                    AnimateJoint(JointType.RIGHT_ELBOW, -30f, 12),
+                    AnimateJoint(JointType.LEFT_SHOULDER, 10f, 12),
+                    AnimateJoint(JointType.LEFT_ELBOW, -30f, 12),
+                    AnimateJoint(JointType.LEFT_HIP, 5f, 12),
+                    AnimateJoint(JointType.LEFT_KNEE, 10f, 12),
+                    AnimateJoint(JointType.RIGHT_HIP, -5f, 12),
+                    AnimateJoint(JointType.RIGHT_KNEE, 10f, 12),
+                    AnimateJoint(JointType.HEAD, 0f, 12)
+                );
+            }
+            finally
+            {
+                ResetPose();
+                OnAnimationStep?.Invoke();
+                isAttacking = false;
+            }
+        }
+
+        #endregion
 
         // ===== Joint angles =====
         public float CHARACTER_angle;        // whole body rotation around Z
@@ -108,6 +307,10 @@ namespace myOpenGL
         uint CHARACTER_LIST, HEAD_LIST;
         uint UPPER_ARM_LIST, LOWER_ARM_LIST;
         uint UPPER_LEG_LIST, LOWER_LEG_LIST;
+
+        uint CHARACTER_SHADOW_LIST, HEAD_SHADOW_LIST;
+        uint UPPER_ARM_SHADOW_LIST, LOWER_ARM_SHADOW_LIST;
+        uint UPPER_LEG_SHADOW_LIST, LOWER_LEG_SHADOW_LIST;
 
         // ===== Body dimensions =====
         float bodyRadius, bodyLength;
@@ -141,9 +344,8 @@ namespace myOpenGL
             float startAngle = GetJointAngle(joint);
             float angleDifference = targetAngle - startAngle;
             
-            int frameDuration = 16; // ~60 FPS
-            int steps = durationMs / frameDuration;
-            if (steps <= 0) steps = 1;
+            int frameDuration = 4; // אנימציה מהירה וחלקה ב-250 FPS
+            int steps = Math.Max(1, durationMs / frameDuration);
             
             float angleStep = angleDifference / steps;
 
@@ -151,7 +353,10 @@ namespace myOpenGL
             {
                 SetJointAngle(joint, GetJointAngle(joint) + angleStep);
                 OnAnimationStep?.Invoke();
-                await Task.Delay(frameDuration);
+                if (steps > 1)
+                {
+                    await Task.Delay(frameDuration);
+                }
             }
             
             // מוודא שהגענו בדיוק לזווית היעד בסוף
@@ -245,13 +450,20 @@ namespace myOpenGL
 
                 obj = GLU.gluNewQuadric();
 
-                // Allocate 6 consecutive display lists
-                CHARACTER_LIST = GL.glGenLists(6);
+                // Allocate 12 consecutive display lists (6 for colored model, 6 for shadow)
+                CHARACTER_LIST = GL.glGenLists(12);
                 HEAD_LIST = CHARACTER_LIST + 1;
                 UPPER_ARM_LIST = CHARACTER_LIST + 2;
                 LOWER_ARM_LIST = CHARACTER_LIST + 3;
                 UPPER_LEG_LIST = CHARACTER_LIST + 4;
                 LOWER_LEG_LIST = CHARACTER_LIST + 5;
+
+                CHARACTER_SHADOW_LIST = CHARACTER_LIST + 6;
+                HEAD_SHADOW_LIST = CHARACTER_LIST + 7;
+                UPPER_ARM_SHADOW_LIST = CHARACTER_LIST + 8;
+                LOWER_ARM_SHADOW_LIST = CHARACTER_LIST + 9;
+                UPPER_LEG_SHADOW_LIST = CHARACTER_LIST + 10;
+                LOWER_LEG_SHADOW_LIST = CHARACTER_LIST + 11;
 
                 // ========== HEAD LIST ==========
                 GL.glPushMatrix();
@@ -263,53 +475,90 @@ namespace myOpenGL
                 GL.glPopMatrix();
 
                 // ========== UPPER ARM LIST ==========
-                // Draws the upper-arm cylinder, translates to its end, draws elbow joint
                 GL.glPushMatrix();
                 GL.glNewList(UPPER_ARM_LIST, GL.GL_COMPILE);
                 GL.glColor3f(0.95f, 0.0f, 0.6f);              // neon magenta
                 GLU.gluCylinder(obj, upperArmRadius, upperArmRadius, upperArmLength, 20, 20);
                 GL.glTranslated(0, 0, upperArmLength);
-                // elbow joint sphere
                 GL.glColor3f(0.0f, 1.0f, 0.4f);                // neon green joint
                 GLU.gluSphere(obj, upperArmRadius * 1.3f, 20, 20);
                 GL.glEndList();
                 GL.glPopMatrix();
 
                 // ========== LOWER ARM LIST ==========
-                // Draws the forearm cylinder, translates to its end, draws hand
                 GL.glPushMatrix();
                 GL.glNewList(LOWER_ARM_LIST, GL.GL_COMPILE);
                 GL.glColor3f(0.85f, 0.0f, 0.5f);              // deep magenta
                 GLU.gluCylinder(obj, lowerArmRadius, lowerArmRadius, lowerArmLength, 20, 20);
                 GL.glTranslated(0, 0, lowerArmLength);
-                // hand sphere
                 GL.glColor3f(1.0f, 0.5f, 0.0f);                // neon orange hand
                 GLU.gluSphere(obj, lowerArmRadius * 1.5f, 20, 20);
                 GL.glEndList();
                 GL.glPopMatrix();
 
                 // ========== UPPER LEG LIST ==========
-                // Draws the thigh cylinder, translates to its end, draws knee joint
                 GL.glPushMatrix();
                 GL.glNewList(UPPER_LEG_LIST, GL.GL_COMPILE);
                 GL.glColor3f(0.4f, 0.0f, 0.8f);               // electric purple
                 GLU.gluCylinder(obj, upperLegRadius, upperLegRadius, upperLegLength, 20, 20);
                 GL.glTranslated(0, 0, upperLegLength);
-                // knee joint sphere
                 GL.glColor3f(0.0f, 1.0f, 0.4f);                // neon green joint
                 GLU.gluSphere(obj, upperLegRadius * 1.2f, 20, 20);
                 GL.glEndList();
                 GL.glPopMatrix();
 
                 // ========== LOWER LEG LIST ==========
-                // Draws the shin cylinder, translates to its end, draws foot
                 GL.glPushMatrix();
                 GL.glNewList(LOWER_LEG_LIST, GL.GL_COMPILE);
                 GL.glColor3f(0.3f, 0.0f, 0.7f);               // deep purple
                 GLU.gluCylinder(obj, lowerLegRadius, lowerLegRadius, lowerLegLength, 20, 20);
                 GL.glTranslated(0, 0, lowerLegLength);
-                // foot (flattened sphere)
                 GL.glColor3f(1.0f, 0.5f, 0.0f);                // neon orange boot
+                GL.glPushMatrix();
+                GL.glScalef(1.0f, 0.6f, 1.5f);
+                GLU.gluSphere(obj, lowerLegRadius * 1.3f, 20, 20);
+                GL.glPopMatrix();
+                GL.glEndList();
+                GL.glPopMatrix();
+
+                // ========================================================
+                // רשימות צל ייעודיות - גאומטריה נקייה לחלוטין ללא קריאות glColor
+                // מאפשר הטלת צל שחור שקוף אחיד על פני כל חלקי הגוף
+                // ========================================================
+                GL.glPushMatrix();
+                GL.glNewList(HEAD_SHADOW_LIST, GL.GL_COMPILE);
+                GLU.gluSphere(obj, headRadius, 20, 20);
+                GL.glEndList();
+                GL.glPopMatrix();
+
+                GL.glPushMatrix();
+                GL.glNewList(UPPER_ARM_SHADOW_LIST, GL.GL_COMPILE);
+                GLU.gluCylinder(obj, upperArmRadius, upperArmRadius, upperArmLength, 20, 20);
+                GL.glTranslated(0, 0, upperArmLength);
+                GLU.gluSphere(obj, upperArmRadius * 1.3f, 20, 20);
+                GL.glEndList();
+                GL.glPopMatrix();
+
+                GL.glPushMatrix();
+                GL.glNewList(LOWER_ARM_SHADOW_LIST, GL.GL_COMPILE);
+                GLU.gluCylinder(obj, lowerArmRadius, lowerArmRadius, lowerArmLength, 20, 20);
+                GL.glTranslated(0, 0, lowerArmLength);
+                GLU.gluSphere(obj, lowerArmRadius * 1.5f, 20, 20);
+                GL.glEndList();
+                GL.glPopMatrix();
+
+                GL.glPushMatrix();
+                GL.glNewList(UPPER_LEG_SHADOW_LIST, GL.GL_COMPILE);
+                GLU.gluCylinder(obj, upperLegRadius, upperLegRadius, upperLegLength, 20, 20);
+                GL.glTranslated(0, 0, upperLegLength);
+                GLU.gluSphere(obj, upperLegRadius * 1.2f, 20, 20);
+                GL.glEndList();
+                GL.glPopMatrix();
+
+                GL.glPushMatrix();
+                GL.glNewList(LOWER_LEG_SHADOW_LIST, GL.GL_COMPILE);
+                GLU.gluCylinder(obj, lowerLegRadius, lowerLegRadius, lowerLegLength, 20, 20);
+                GL.glTranslated(0, 0, lowerLegLength);
                 GL.glPushMatrix();
                 GL.glScalef(1.0f, 0.6f, 1.5f);
                 GLU.gluSphere(obj, lowerLegRadius * 1.3f, 20, 20);
@@ -321,42 +570,45 @@ namespace myOpenGL
             CreateCharacterList();
         }
 
-
         public void CreateCharacterList()
         {
+            // 1. רשימת הציור הרגילה עם צבעים
             GL.glPushMatrix();
-            //
-            // hierarchical list
-            //
             GL.glNewList(CHARACTER_LIST, GL.GL_COMPILE);
+            BuildCharacterHierarchy(false);
+            GL.glEndList();
+            GL.glPopMatrix();
 
+            // 2. רשימת הציור לצל - אותה גאומטריה ללא צבעים קשיחים
+            GL.glPushMatrix();
+            GL.glNewList(CHARACTER_SHADOW_LIST, GL.GL_COMPILE);
+            BuildCharacterHierarchy(true);
+            GL.glEndList();
+            GL.glPopMatrix();
+        }
+
+        private void BuildCharacterHierarchy(bool isForShadow)
+        {
             // ==========================================
             //  BODY (TORSO) — root of the hierarchy
             // ==========================================
-            // Torso cylinder along +Z  (bottom = hips, top = shoulders)
-            GL.glColor3f(0.0f, 0.9f, 0.9f);               // neon cyan armor
+            if (!isForShadow) GL.glColor3f(0.0f, 0.9f, 0.9f);               // neon cyan armor
             GLU.gluCylinder(obj, bodyRadius, bodyRadius * 0.85f, bodyLength, 20, 20);
-            // bottom disk (belt area)
-            GL.glColor3f(0.0f, 0.7f, 0.7f);               // darker cyan belt
+            if (!isForShadow) GL.glColor3f(0.0f, 0.7f, 0.7f);               // darker cyan belt
             GLU.gluDisk(obj, 0, bodyRadius, 20, 20);
-            // end body
 
             // ==========================================
             //  HEAD  (child of body)
             // ==========================================
             GL.glPushMatrix();
                 GL.glTranslated(0, 0, bodyLength);
-                // top disk of torso
-                GL.glColor3f(0.0f, 0.9f, 0.9f);               // cyan top
+                if (!isForShadow) GL.glColor3f(0.0f, 0.9f, 0.9f);           // cyan top
                 GLU.gluDisk(obj, 0, bodyRadius * 0.85f, 20, 20);
-                // neck
-                GL.glColor3f(0.5f, 0.5f, 0.6f);               // metallic silver neck
+                if (!isForShadow) GL.glColor3f(0.5f, 0.5f, 0.6f);           // metallic silver neck
                 GLU.gluCylinder(obj, neckRadius, neckRadius, neckLength, 20, 20);
                 GL.glTranslated(0, 0, neckLength + headRadius * 0.7f);
-                // head rotation
                 GL.glRotatef(HEAD_angle, 0, 0, 1);
-                // call HEAD
-                GL.glCallList(HEAD_LIST);
+                GL.glCallList(isForShadow ? HEAD_SHADOW_LIST : HEAD_LIST);
             GL.glPopMatrix();
 
             // ==========================================
@@ -364,25 +616,16 @@ namespace myOpenGL
             //    └── left forearm  (child of left arm)
             // ==========================================
             GL.glPushMatrix();
-                // move to left shoulder
                 GL.glTranslated(bodyRadius * 0.85f + upperArmRadius, 0, bodyLength - 0.1f);
-                // shoulder joint sphere
-                GL.glColor3f(0.0f, 1.0f, 0.4f);               // neon green joint
+                if (!isForShadow) GL.glColor3f(0.0f, 1.0f, 0.4f);           // neon green joint
                 GLU.gluSphere(obj, upperArmRadius * 1.3f, 20, 20);
 
-                // transformations: flip downward + shoulder rotation
                 GL.glRotatef(180, 1, 0, 0);
                 GL.glRotatef(LEFT_SHOULDER_angle, 1, 0, 0);
+                GL.glCallList(isForShadow ? UPPER_ARM_SHADOW_LIST : UPPER_ARM_LIST);
 
-                // call UPPER ARM
-                GL.glCallList(UPPER_ARM_LIST);
-
-                // transformations: elbow rotation
-                // (no extra translate needed — UPPER_ARM_LIST already moved to the end)
                 GL.glRotatef(LEFT_ELBOW_angle, 1, 0, 0);
-
-                // call LOWER ARM
-                GL.glCallList(LOWER_ARM_LIST);
+                GL.glCallList(isForShadow ? LOWER_ARM_SHADOW_LIST : LOWER_ARM_LIST);
             GL.glPopMatrix();
 
             // ==========================================
@@ -390,24 +633,16 @@ namespace myOpenGL
             //    └── right forearm  (child of right arm)
             // ==========================================
             GL.glPushMatrix();
-                // move to right shoulder
                 GL.glTranslated(-(bodyRadius * 0.85f + upperArmRadius), 0, bodyLength - 0.1f);
-                // shoulder joint sphere
-                GL.glColor3f(0.0f, 1.0f, 0.4f);               // neon green joint
+                if (!isForShadow) GL.glColor3f(0.0f, 1.0f, 0.4f);           // neon green joint
                 GLU.gluSphere(obj, upperArmRadius * 1.3f, 20, 20);
 
-                // transformations
                 GL.glRotatef(180, 1, 0, 0);
                 GL.glRotatef(RIGHT_SHOULDER_angle, 1, 0, 0);
+                GL.glCallList(isForShadow ? UPPER_ARM_SHADOW_LIST : UPPER_ARM_LIST);
 
-                // call UPPER ARM
-                GL.glCallList(UPPER_ARM_LIST);
-
-                // transformations
                 GL.glRotatef(RIGHT_ELBOW_angle, 1, 0, 0);
-
-                // call LOWER ARM
-                GL.glCallList(LOWER_ARM_LIST);
+                GL.glCallList(isForShadow ? LOWER_ARM_SHADOW_LIST : LOWER_ARM_LIST);
             GL.glPopMatrix();
 
             // ==========================================
@@ -415,24 +650,16 @@ namespace myOpenGL
             //    └── left shin  (child of left leg)
             // ==========================================
             GL.glPushMatrix();
-                // move to left hip
                 GL.glTranslated(bodyRadius * 0.4f, 0, 0);
-                // hip joint sphere
-                GL.glColor3f(0.0f, 1.0f, 0.4f);               // neon green joint
+                if (!isForShadow) GL.glColor3f(0.0f, 1.0f, 0.4f);           // neon green joint
                 GLU.gluSphere(obj, upperLegRadius * 1.1f, 20, 20);
 
-                // transformations: flip downward + hip rotation
                 GL.glRotatef(180, 1, 0, 0);
                 GL.glRotatef(LEFT_HIP_angle, 1, 0, 0);
+                GL.glCallList(isForShadow ? UPPER_LEG_SHADOW_LIST : UPPER_LEG_LIST);
 
-                // call UPPER LEG
-                GL.glCallList(UPPER_LEG_LIST);
-
-                // transformations: knee rotation
                 GL.glRotatef(LEFT_KNEE_angle, 1, 0, 0);
-
-                // call LOWER LEG
-                GL.glCallList(LOWER_LEG_LIST);
+                GL.glCallList(isForShadow ? LOWER_LEG_SHADOW_LIST : LOWER_LEG_LIST);
             GL.glPopMatrix();
 
             // ==========================================
@@ -440,27 +667,16 @@ namespace myOpenGL
             //    └── right shin  (child of right leg)
             // ==========================================
             GL.glPushMatrix();
-                // move to right hip
                 GL.glTranslated(-(bodyRadius * 0.4f), 0, 0);
-                // hip joint sphere
-                GL.glColor3f(0.0f, 1.0f, 0.4f);               // neon green joint
+                if (!isForShadow) GL.glColor3f(0.0f, 1.0f, 0.4f);           // neon green joint
                 GLU.gluSphere(obj, upperLegRadius * 1.1f, 20, 20);
 
-                // transformations
                 GL.glRotatef(180, 1, 0, 0);
                 GL.glRotatef(RIGHT_HIP_angle, 1, 0, 0);
+                GL.glCallList(isForShadow ? UPPER_LEG_SHADOW_LIST : UPPER_LEG_LIST);
 
-                // call UPPER LEG
-                GL.glCallList(UPPER_LEG_LIST);
-
-                // transformations
                 GL.glRotatef(RIGHT_KNEE_angle, 1, 0, 0);
-
-                // call LOWER LEG
-                GL.glCallList(LOWER_LEG_LIST);
-            GL.glPopMatrix();
-
-            GL.glEndList();
+                GL.glCallList(isForShadow ? LOWER_LEG_SHADOW_LIST : LOWER_LEG_LIST);
             GL.glPopMatrix();
         }
 
@@ -562,12 +778,34 @@ namespace myOpenGL
 
         }
 
-        public void DrawCharacter()
+        public override void DrawGeometry(bool isForShadow)
+        {
+            GL.glPushMatrix();
+            GL.glTranslatef(xPosition, yPosition, zPosition);
+            GL.glRotatef(CHARACTER_angle, 0, 0, 1);
+            if (isForShadow)
+            {
+                GL.glCallList(CHARACTER_SHADOW_LIST);
+            }
+            else
+            {
+                GL.glCallList(CHARACTER_LIST);
+            }
+            GL.glPopMatrix();
+        }
+
+        public void DrawCharacter(bool drawShadow = true)
         {
             PrepareLists();
             
             // מעדכן את רשימת הציור כדי להכיל את הזוויות החדשות
             CreateCharacterList();
+
+            // 1. ציור הצל המוטל על הקרקע בצבע שחור מעט שקוף
+            if (drawShadow && CastShadow)
+            {
+                DrawShadow();
+            }
 
             // ===== Enable lighting for the character =====
             GL.glEnable(GL.GL_LIGHTING);
@@ -575,7 +813,7 @@ namespace myOpenGL
             GL.glEnable(GL.GL_NORMALIZE);
 
             // Light position (above-right-front)
-            float[] lightPos = { 5.0f, 5.0f, 10.0f, 1.0f };
+            float[] lightPos = LightPosition ?? GlobalLightPosition;
             GL.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, lightPos);
 
             // Light properties
@@ -595,12 +833,8 @@ namespace myOpenGL
             GL.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_SPECULAR, matSpecular);
             GL.glMaterialf(GL.GL_FRONT_AND_BACK, GL.GL_SHININESS, 60.0f);
 
-            // ===== Draw the character =====
-            GL.glPushMatrix();
-            GL.glTranslatef(xPosition, yPosition, zPosition);
-            GL.glRotatef(CHARACTER_angle, 0, 0, 1);
-            GL.glCallList(CHARACTER_LIST);
-            GL.glPopMatrix();
+            // ===== Draw the character geometry =====
+            DrawGeometry(false);
 
             // ===== Disable lighting so it doesn't affect the rest of the scene =====
             GL.glDisable(0x0B57); // GL_COLOR_MATERIAL

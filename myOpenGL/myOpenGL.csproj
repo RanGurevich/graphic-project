@@ -43,9 +43,37 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ShadowObject.cs" />
+    <Compile Include="Monster.cs" />
+    <Compile Include="TRINAGLE.cs" />
+    <Compile Include="mushroom.cs" />
+    <Compile Include="mushroom.Textures.cs">
+      <DependentUpon>mushroom.cs</DependentUpon>
+    </Compile>
+    <Compile Include="mushroom.Physics.cs">
+      <DependentUpon>mushroom.cs</DependentUpon>
+    </Compile>
+    <Compile Include="mushroom.Body.cs">
+      <DependentUpon>mushroom.cs</DependentUpon>
+    </Compile>
+    <Compile Include="mushroom.Cap.cs">
+      <DependentUpon>mushroom.cs</DependentUpon>
+    </Compile>
+    <Compile Include="snail.cs" />
+    <Compile Include="snail.Textures.cs">
+      <DependentUpon>snail.cs</DependentUpon>
+    </Compile>
+    <Compile Include="snail.Physics.cs">
+      <DependentUpon>snail.cs</DependentUpon>
+    </Compile>
+    <Compile Include="snail.Rendering.cs">
+      <DependentUpon>snail.cs</DependentUpon>
+    </Compile>
     <Compile Include="Character.cs" />
     <Compile Include="cOGL.cs" />
     <Compile Include="WorldSkyBox.cs" />
+    <Compile Include="Grass.cs" />
+    <Compile Include="Lake.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -88,6 +116,11 @@
     <Content Include="pics\cube-6.jpg" />
     <Content Include="pics\cube2-4.jpg" />
     <Content Include="pics\grass.png" />
+    <Content Include="pics\mushroom.png" />
+    <Content Include="pics\mushroom_face.png" />
+    <Content Include="pics\mushroom_cap.png" />
+    <Content Include="pics\snail_red.png" />
+    <Content Include="pics\snail_blue.png" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

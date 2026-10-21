@@ -20,6 +20,7 @@ namespace myOpenGL
         private bool isMouseLookActive = true;
         private bool isFirstMouseMove = true;
         private bool isCenteringCursor = false;
+        private Timer renderTimer;
 
         public Form1()
         {
@@ -36,6 +37,12 @@ namespace myOpenGL
             this.MouseWheel += panel1_MouseWheel;
             this.Activated += (s, e) => { isFirstMouseMove = true; };
 
+            // טיימר רציף להנפשת רוח בדשא והתאוששות דריכה חלקה בזמן אמת
+            renderTimer = new Timer();
+            renderTimer.Interval = 25; // ~40 FPS
+            renderTimer.Tick += (s, e) => { cGL.DrawAll(); };
+            renderTimer.Start();
+
             // חובה כדי שהטופס יתפוס את הלחיצות על המקלדת לפני פקדים אחרים (כמו הפאנל)
             this.KeyPreview = true;
         }
@@ -47,12 +54,12 @@ namespace myOpenGL
             if (isMouseLookActive)
             {
                 panel1.Cursor = Cursors.Cross;
-                this.Text = "OpenGL Skybox [מבט עכבר פעיל | ESC לשחרור סמן | גלגלת לזום | WASD להליכה]";
+                this.Text = "OpenGL Game [WASD: תנועה | קליק שמאלי: אגרוף | קליק ימני: בעיטה | גלגלת: זום | ESC: שחרור סמן]";
             }
             else
             {
                 panel1.Cursor = Cursors.Default;
-                this.Text = "OpenGL Skybox [סמן משוחרר | לחץ על המסך לנעילה מחדש | גרור בעכבר למבט]";
+                this.Text = "OpenGL Game [סמן משוחרר | לחץ שמאלי על המסך לנעילה מחדש]";
             }
         }
 
@@ -62,6 +69,20 @@ namespace myOpenGL
             if (!isMouseLookActive && e.Button == MouseButtons.Left)
             {
                 SetMouseLook(true);
+                return;
+            }
+
+            // הפעלת תקיפות הדמות: קליק ימני = בעיטה, קליק שמאלי = אגרוף
+            if (character != null)
+            {
+                if (e.Button == MouseButtons.Right)
+                {
+                    character.PerformKick();
+                }
+                else if (e.Button == MouseButtons.Left)
+                {
+                    character.PerformPunch();
+                }
             }
         }
 
@@ -75,7 +96,7 @@ namespace myOpenGL
 
             if (!isMouseLookActive || Form.ActiveForm != this)
             {
-                if (e.Button == MouseButtons.Left || e.Button == MouseButtons.Right)
+                if (e.Button == MouseButtons.Left)
                 {
                     int dx = e.X - lastMousePos.X;
                     int dy = e.Y - lastMousePos.Y;
@@ -128,10 +149,7 @@ namespace myOpenGL
 
         private void panel1_MouseClick(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Right || (ModifierKeys & Keys.Control) == Keys.Control)
-            {
-                cGL.GetOpenGLCoords(e.X, e.Y);
-            }
+            // מקש ימני מנוטרל מהפעולה הקודמת (GetOpenGLCoords הוסר)
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -142,28 +160,28 @@ namespace myOpenGL
                     SetMouseLook(!isMouseLookActive);
                     return true;
                 case Keys.Y:
-                    _ = character.MoveJointByDegree(Character.JointType.LEFT_SHOULDER, 3f, 10);
+                    _ = character.MoveJointByDegree(Character.JointType.LEFT_SHOULDER, 30f, 10);
                     break;
                 case Keys.H:
-                    _ = character.MoveJointByDegree(Character.JointType.LEFT_SHOULDER, -3f, 10);
+                    _ = character.MoveJointByDegree(Character.JointType.LEFT_SHOULDER, -30f, 10);
                     break;
                 case Keys.U:
-                    _ = character.MoveJointByDegree(Character.JointType.LEFT_ELBOW, 3f, 10);
+                    _ = character.MoveJointByDegree(Character.JointType.LEFT_ELBOW, 30f, 10);
                     break;
                 case Keys.J:
-                    _ = character.MoveJointByDegree(Character.JointType.LEFT_ELBOW, -3f, 10);
+                    _ = character.MoveJointByDegree(Character.JointType.LEFT_ELBOW, -30f, 10);
                     break;
                 case Keys.I:
-                    _ = character.MoveJointByDegree(Character.JointType.LEFT_HIP, 3f, 10);
+                    _ = character.MoveJointByDegree(Character.JointType.LEFT_HIP, 30f, 10);
                     break;
                 case Keys.K:
-                    _ = character.MoveJointByDegree(Character.JointType.LEFT_HIP, -3f, 10);
+                    _ = character.MoveJointByDegree(Character.JointType.LEFT_HIP, -30f, 10);
                     break;
                 case Keys.O:
-                    _ = character.MoveJointByDegree(Character.JointType.LEFT_KNEE, 3f, 10);
+                    _ = character.MoveJointByDegree(Character.JointType.LEFT_KNEE, 30f, 10);
                     break;
                 case Keys.L:
-                    _ = character.MoveJointByDegree(Character.JointType.LEFT_KNEE, -3f, 10);
+                    _ = character.MoveJointByDegree(Character.JointType.LEFT_KNEE, -30f, 10);
                     break;
 
 
