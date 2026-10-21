@@ -17,7 +17,33 @@ namespace OpenGL
         public float CenterY { get; set; }
         public float Radius { get; set; }
         public Grass GrassRef { get; set; }
-        public Character CharacterRef { get; set; }
+
+        private Character characterRef;
+        /// <summary>
+        /// הפניה לדמות (Character) המשתקפת באגם כאשר היא בסביבתו
+        /// </summary>
+        public Character CharacterRef
+        {
+            get => characterRef;
+            set
+            {
+                characterRef = value;
+                if (value != null)
+                {
+                    AddShadowObject(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// רשימת כל אובייקטי ה-ShadowObject (הורשה ישירה או עקיפה) שנרשמו להשתקפות באגם
+        /// </summary>
+        public List<ShadowObject> ShadowObjects { get; } = new List<ShadowObject>();
+
+        /// <summary>
+        /// ספק אובייקטי ShadowObject חיצוני (לדוגמה: cOGL המספק את כל האובייקטים והמפלצות בסצינה)
+        /// </summary>
+        public Func<IEnumerable<ShadowObject>> ShadowObjectsProvider { get; set; }
 
         public bool IsVisible { get; private set; } = true;
         public bool bDepthTest = true;
@@ -54,6 +80,25 @@ namespace OpenGL
         /// </summary>
         public Lake(float centerX, float centerY, float radius) : this(centerX, centerY, radius, null)
         {
+        }
+
+        /// <summary>
+        /// מוסיף אובייקט מסוג ShadowObject (או יורש ישיר/עקיף שלו) לרשימת ההשתקפויות באגם.
+        /// </summary>
+        public void AddShadowObject(ShadowObject shadowObject)
+        {
+            if (shadowObject != null && !ShadowObjects.Contains(shadowObject) && !(shadowObject is Grass))
+            {
+                ShadowObjects.Add(shadowObject);
+            }
+        }
+
+        /// <summary>
+        /// מסיר אובייקט מסוג ShadowObject מרשימת ההשתקפויות באגם.
+        /// </summary>
+        public void RemoveShadowObject(ShadowObject shadowObject)
+        {
+            ShadowObjects.Remove(shadowObject);
         }
 
         /// <summary>
@@ -366,7 +411,57 @@ namespace OpenGL
         }
 
         /// <summary>
-        /// ציור האגם המעוגל וכל ההשתקפויות של האובייקטים שנמצאים באזור האגם.
+        /// מחזיר את כל אובייקטי ה-ShadowObject (הורשה ישירה או עקיפה) שקיימים ופעילים בעולם
+        /// </summary>
+        public IEnumerable<ShadowObject> GetAllShadowObjectsToReflect()
+        {
+            HashSet<ShadowObject> seen = new HashSet<ShadowObject>();
+
+            // 1. אובייקטים מספק חיצוני (cOGL)
+            if (ShadowObjectsProvider != null)
+            {
+                var providerObjs = ShadowObjectsProvider();
+                if (providerObjs != null)
+                {
+                    foreach (var obj in providerObjs)
+                    {
+                        if (obj != null && !(obj is Grass) && obj.IsVisible && seen.Add(obj))
+                        {
+                            yield return obj;
+                        }
+                    }
+                }
+            }
+
+            // 2. אובייקטים שנרשמו ישירות ל-Lake
+            for (int i = 0; i < ShadowObjects.Count; i++)
+            {
+                var obj = ShadowObjects[i];
+                if (obj != null && !(obj is Grass) && obj.IsVisible && seen.Add(obj))
+                {
+                    yield return obj;
+                }
+            }
+
+            // 3. הדמות (אם הוגדרה ישירות)
+            if (CharacterRef != null && CharacterRef.IsVisible && seen.Add(CharacterRef))
+            {
+                yield return CharacterRef;
+            }
+
+            // 4. אובייקטים שנרשמו גלובלית ב-ShadowObject.AllInstances
+            for (int i = 0; i < ShadowObject.AllInstances.Count; i++)
+            {
+                var obj = ShadowObject.AllInstances[i];
+                if (obj != null && !(obj is Grass) && obj.IsVisible && seen.Add(obj))
+                {
+                    yield return obj;
+                }
+            }
+        }
+
+        /// <summary>
+        /// ציור האגם המעוגל וכל ההשתקפויות של כל אובייקט ShadowObject (ישיר או עקיף) הנמצא באזור האגם.
         /// </summary>
         public void Draw()
         {
@@ -379,29 +474,37 @@ namespace OpenGL
             // 1. ציור רצועת החוף המעגלית
             DrawShore(baseZ);
 
-            // 2. בדיקה האם יש אובייקטים שנדרשת עבורם השתקפות במים
-            bool hasCharacterNear = CharacterRef != null && IsInsideLake(CharacterRef.X, CharacterRef.Y, Radius * 0.8f);
-            bool hasObjectsToReflect = ReflectedObjects.Count > 0 || hasCharacterNear;
+            // 2. איסוף כל אובייקטי ה-ShadowObject (הורשה ישירה או עקיפה) שנמצאים באגם או בקרבתו
+            List<ShadowObject> nearShadowObjects = new List<ShadowObject>();
+            foreach (var obj in GetAllShadowObjectsToReflect())
+            {
+                if (obj != null && obj.IsVisible && IsInsideLake(obj.X, obj.Y, Radius * 0.8f))
+                {
+                    nearShadowObjects.Add(obj);
+                }
+            }
+
+            bool hasObjectsToReflect = ReflectedObjects.Count > 0 || nearShadowObjects.Count > 0;
 
             if (hasObjectsToReflect)
             {
-                // ציור השתקפות המים עבור כל אובייקט שנרשם או נמצא באגם
+                // ציור השתקפות המים עבור כל אובייקט ShadowObject (דמות, מפלצות, פטריות, חלזונות וכו') שנמצא באגם
                 DrawWithReflection(() =>
                 {
-                    // השתקפות אובייקטים שנרשמו לאגם
+                    // השתקפות פעולות ציור כלליות שנרשמו לאגם
                     for (int i = 0; i < ReflectedObjects.Count; i++)
                     {
                         ReflectedObjects[i]?.Invoke();
                     }
 
-                    // השתקפות הדמות כאשר היא נמצאת בשטח המעוגל של האגם
-                    if (hasCharacterNear)
+                    // השתקפות כל אובייקט מסוג ShadowObject באגם
+                    for (int i = 0; i < nearShadowObjects.Count; i++)
                     {
-                        CharacterRef.DrawCharacter(false);
+                        nearShadowObjects[i].DrawForReflection();
                     }
                 }, drawRealObject: false);
 
-                // ציור האובייקטים האמיתיים שנרשמו מעל המים (הדמות מצוירת ב-cOGL.DrawAll)
+                // ציור האובייקטים האמיתיים שנרשמו מעל המים (האובייקטים בעולם מצוירים ב-cOGL.DrawAll)
                 for (int i = 0; i < ReflectedObjects.Count; i++)
                 {
                     ReflectedObjects[i]?.Invoke();

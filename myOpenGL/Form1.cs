@@ -73,8 +73,14 @@ namespace myOpenGL
             }
 
             // הפעלת תקיפות הדמות: קליק ימני = בעיטה, קליק שמאלי = אגרוף
+            // אם מתרחשת באותו רגע בעיטה או אגרוף - לא ניתן לעשות פעולה נוספת עד לסיום ההתקפה
             if (character != null)
             {
+                if (character.IsAttacking)
+                {
+                    return;
+                }
+
                 if (e.Button == MouseButtons.Right)
                 {
                     character.PerformKick();
@@ -160,28 +166,28 @@ namespace myOpenGL
                     SetMouseLook(!isMouseLookActive);
                     return true;
                 case Keys.Y:
-                    _ = character.MoveJointByDegree(Character.JointType.LEFT_SHOULDER, 30f, 10);
+                    if (!character.IsAttacking) _ = character.MoveJointByDegree(Character.JointType.LEFT_SHOULDER, 30f, 10);
                     break;
                 case Keys.H:
-                    _ = character.MoveJointByDegree(Character.JointType.LEFT_SHOULDER, -30f, 10);
+                    if (!character.IsAttacking) _ = character.MoveJointByDegree(Character.JointType.LEFT_SHOULDER, -30f, 10);
                     break;
                 case Keys.U:
-                    _ = character.MoveJointByDegree(Character.JointType.LEFT_ELBOW, 30f, 10);
+                    if (!character.IsAttacking) _ = character.MoveJointByDegree(Character.JointType.LEFT_ELBOW, 30f, 10);
                     break;
                 case Keys.J:
-                    _ = character.MoveJointByDegree(Character.JointType.LEFT_ELBOW, -30f, 10);
+                    if (!character.IsAttacking) _ = character.MoveJointByDegree(Character.JointType.LEFT_ELBOW, -30f, 10);
                     break;
                 case Keys.I:
-                    _ = character.MoveJointByDegree(Character.JointType.LEFT_HIP, 30f, 10);
+                    if (!character.IsAttacking) _ = character.MoveJointByDegree(Character.JointType.LEFT_HIP, 30f, 10);
                     break;
                 case Keys.K:
-                    _ = character.MoveJointByDegree(Character.JointType.LEFT_HIP, -30f, 10);
+                    if (!character.IsAttacking) _ = character.MoveJointByDegree(Character.JointType.LEFT_HIP, -30f, 10);
                     break;
                 case Keys.O:
-                    _ = character.MoveJointByDegree(Character.JointType.LEFT_KNEE, 30f, 10);
+                    if (!character.IsAttacking) _ = character.MoveJointByDegree(Character.JointType.LEFT_KNEE, 30f, 10);
                     break;
                 case Keys.L:
-                    _ = character.MoveJointByDegree(Character.JointType.LEFT_KNEE, -30f, 10);
+                    if (!character.IsAttacking) _ = character.MoveJointByDegree(Character.JointType.LEFT_KNEE, -30f, 10);
                     break;
 
 

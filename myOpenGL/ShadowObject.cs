@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using OpenGL;
 
 namespace OpenGL
@@ -7,10 +8,82 @@ namespace OpenGL
     /// מחלקת בסיס לאובייקטים בעלי צל (ShadowObject).
     /// כל אובייקט שיורש ממחלקה זו מקבל יכולת להטיל צל שטוח (Planar Shadow)
     /// בצבע שחור מעט שקוף על גבי מישור הרצפה (או כל מישור אחר) באמצעות
-    /// מטריצת היטל צל (Shadow Projection Matrix).
+    /// מטריצת היטל צל (Shadow Projection Matrix), וכן תמיכה בהשתקפות באגם (Lake)
+    /// ומעיכת דשא (Grass) בעת דריכה.
     /// </summary>
     public abstract class ShadowObject
     {
+        #region רישום מופעים כללי (Global Instances Registry)
+
+        /// <summary>
+        /// רשימת כל מופעי ה-ShadowObject הפעילים בסצינה (למעט הדשא עצמו)
+        /// </summary>
+        public static List<ShadowObject> AllInstances { get; } = new List<ShadowObject>();
+
+        protected ShadowObject()
+        {
+            if (!(this is Grass))
+            {
+                AllInstances.Add(this);
+            }
+        }
+
+        #endregion
+
+        #region מאפייני מרחב, דריכה והשתקפות (Spatial, Trample & Reflection)
+
+        /// <summary>
+        /// מיקום האובייקט בציר X
+        /// </summary>
+        public virtual float X { get; set; } = 0.0f;
+
+        /// <summary>
+        /// מיקום האובייקט בציר Y
+        /// </summary>
+        public virtual float Y { get; set; } = 0.0f;
+
+        /// <summary>
+        /// מיקום האובייקט בציר Z
+        /// </summary>
+        public virtual float Z { get; set; } = 0.0f;
+
+        /// <summary>
+        /// האם האובייקט נראה ופעיל בסצינה
+        /// </summary>
+        public virtual bool IsVisible { get; set; } = true;
+
+        /// <summary>
+        /// רדיוס הדריכה/מעיכה של האובייקט על גבי הדשא (ברירת מחדל: 1.35f, כפי שמבוצע עבור הדמות)
+        /// </summary>
+        public virtual float TrampleRadius { get; set; } = 1.35f;
+
+        /// <summary>
+        /// האם האובייקט דורך כעת על הקרקע/דשא.
+        /// תומך הן באובייקטים שבסיסם בגובה הרצפה (FloorHeight = -1.35f) והן באובייקטים שבסיסם במרכז/אגן (Z = 0.0f כגון הדמות)
+        /// </summary>
+        public virtual bool IsSteppingOnGround
+        {
+            get
+            {
+                if (!IsVisible) return false;
+                float floorZ = WorldSkyBox.FloorHeight;
+                return Z <= floorZ + 0.85f || (Z >= -0.5f && Z <= 0.85f);
+            }
+        }
+
+        /// <summary>
+        /// ציור האובייקט עבור השתקפות במים באגם (Lake.cs).
+        /// מבוצע ללא ציור הצל המוטל על הקרקע (DrawShadow), שכן אין להטיל צל הפוך בתוך המים.
+        /// מחלקות יורשות דורסות מתודה זו כדי לצייר את המודל שלהן באופן אופטימלי להשתקפות.
+        /// </summary>
+        public virtual void DrawForReflection()
+        {
+            if (!IsVisible) return;
+            DrawGeometry(false);
+        }
+
+        #endregion
+
         #region משתנים ומאפייני צל ותאורה
 
         /// <summary>

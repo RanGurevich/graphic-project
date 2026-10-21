@@ -70,6 +70,18 @@
       <DependentUpon>snail.cs</DependentUpon>
     </Compile>
     <Compile Include="Character.cs" />
+    <Compile Include="Character.Movement.cs">
+      <DependentUpon>Character.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Character.Combat.cs">
+      <DependentUpon>Character.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Character.Animation.cs">
+      <DependentUpon>Character.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Character.Rendering.cs">
+      <DependentUpon>Character.cs</DependentUpon>
+    </Compile>
     <Compile Include="cOGL.cs" />
     <Compile Include="WorldSkyBox.cs" />
     <Compile Include="Grass.cs" />

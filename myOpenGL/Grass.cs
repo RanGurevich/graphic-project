@@ -190,9 +190,97 @@ namespace OpenGL
         }
 
         /// <summary>
-        /// מעדכן את האנימציה של הדשא (רוח ומעיכה לפי מיקום הדמות).
+        /// רשימת אובייקטי ShadowObject שדורכים על הדשא
         /// </summary>
-        public void Update(Character character)
+        public List<ShadowObject> TrampleObjects { get; } = new List<ShadowObject>();
+
+        /// <summary>
+        /// ספק אובייקטי ShadowObject חיצוני (לדוגמה: מ-cOGL המציג את כל הדמויות והמפלצות בסצינה)
+        /// </summary>
+        public Func<IEnumerable<ShadowObject>> ShadowObjectsProvider { get; set; }
+
+        public void AddTrampleObject(ShadowObject obj)
+        {
+            if (obj != null && !TrampleObjects.Contains(obj) && !(obj is Grass))
+            {
+                TrampleObjects.Add(obj);
+            }
+        }
+
+        public void RemoveTrampleObject(ShadowObject obj)
+        {
+            TrampleObjects.Remove(obj);
+        }
+
+        /// <summary>
+        /// מחזיר את כל אובייקטי ה-ShadowObject שדורכים על הדשא (דמות, מפלצות וכו')
+        /// </summary>
+        public IEnumerable<ShadowObject> GetAllTrampleObjects(Character character = null, IEnumerable<ShadowObject> extraObjects = null)
+        {
+            HashSet<ShadowObject> seen = new HashSet<ShadowObject>();
+
+            if (character != null && seen.Add(character))
+            {
+                yield return character;
+            }
+
+            if (extraObjects != null)
+            {
+                foreach (var obj in extraObjects)
+                {
+                    if (obj != null && !(obj is Grass) && seen.Add(obj))
+                    {
+                        yield return obj;
+                    }
+                }
+            }
+
+            if (ShadowObjectsProvider != null)
+            {
+                var fromProvider = ShadowObjectsProvider();
+                if (fromProvider != null)
+                {
+                    foreach (var obj in fromProvider)
+                    {
+                        if (obj != null && !(obj is Grass) && seen.Add(obj))
+                        {
+                            yield return obj;
+                        }
+                    }
+                }
+            }
+
+            for (int i = 0; i < TrampleObjects.Count; i++)
+            {
+                var obj = TrampleObjects[i];
+                if (obj != null && !(obj is Grass) && seen.Add(obj))
+                {
+                    yield return obj;
+                }
+            }
+
+            for (int i = 0; i < ShadowObject.AllInstances.Count; i++)
+            {
+                var obj = ShadowObject.AllInstances[i];
+                if (obj != null && !(obj is Grass) && seen.Add(obj))
+                {
+                    yield return obj;
+                }
+            }
+        }
+
+        private struct TramplerData
+        {
+            public float X;
+            public float Y;
+            public float Radius;
+            public float RadiusSq;
+        }
+
+        /// <summary>
+        /// מעדכן את האנימציה של הדשא (רוח ומעיכה לפי מיקום הדמות וכל אובייקט ShadowObject הדורך על הדשא).
+        /// </summary>
+        public void Update(Character character = null, IEnumerable<ShadowObject> shadowObjects = null)
         {
             if (!isInitialized || blades == null) return;
 
@@ -203,49 +291,99 @@ namespace OpenGL
 
             windTime += dt * 2.1f;
 
-            float charX = 0.0f;
-            float charY = 0.0f;
-            bool hasChar = false;
+            // איסוף כל אובייקטי ה-ShadowObject הדורכים כעת על גבי הקרקע/דשא
+            List<TramplerData> tramplers = new List<TramplerData>(16);
+            float minX = float.MaxValue, maxX = float.MinValue;
+            float minY = float.MaxValue, maxY = float.MinValue;
 
-            if (character != null)
+            // 1. הוספה מפורשת של הדמות הראשית כשהיא פעילה ונראית (תמיד מועכת את הדשא תחת כפות רגליה)
+            if (character != null && character.IsVisible && character.IsSteppingOnGround)
             {
-                charX = character.X;
-                charY = character.Y;
-                hasChar = true;
+                float r = character.TrampleRadius > 0.01f ? character.TrampleRadius : 1.35f;
+                float cx = character.X;
+                float cy = character.Y;
+
+                tramplers.Add(new TramplerData
+                {
+                    X = cx,
+                    Y = cy,
+                    Radius = r,
+                    RadiusSq = r * r
+                });
+
+                if (cx - r < minX) minX = cx - r;
+                if (cx + r > maxX) maxX = cx + r;
+                if (cy - r < minY) minY = cy - r;
+                if (cy + r > maxY) maxY = cy + r;
             }
 
-            float trampleRadius = 1.35f; // רדיוס מעיכת הדשא סביב כפות רגלי הדמות
-            float trampleRadiusSq = trampleRadius * trampleRadius;
+            // 2. הוספת שאר אובייקטי ה-ShadowObject שדורכים על הדשא (מפלצות, פטריות, חלזונות וכו')
+            foreach (var obj in GetAllTrampleObjects(character, shadowObjects))
+            {
+                if (obj == character) continue; // הדמות כבר נוספה במפורש
+
+                if (obj != null && obj.IsSteppingOnGround)
+                {
+                    float r = obj.TrampleRadius;
+                    if (r <= 0.01f) r = 1.35f;
+
+                    float ox = obj.X;
+                    float oy = obj.Y;
+
+                    tramplers.Add(new TramplerData
+                    {
+                        X = ox,
+                        Y = oy,
+                        Radius = r,
+                        RadiusSq = r * r
+                    });
+
+                    if (ox - r < minX) minX = ox - r;
+                    if (ox + r > maxX) maxX = ox + r;
+                    if (oy - r < minY) minY = oy - r;
+                    if (oy + r > maxY) maxY = oy + r;
+                }
+            }
+
+            int count = tramplers.Count;
 
             for (int i = 0; i < blades.Length; i++)
             {
-                // בדיקת Bounding Box מהירה ביותר
-                if (hasChar)
-                {
-                    float dx = blades[i].X - charX;
-                    if (dx > -trampleRadius && dx < trampleRadius)
-                    {
-                        float dy = blades[i].Y - charY;
-                        if (dy > -trampleRadius && dy < trampleRadius)
-                        {
-                            float distSq = dx * dx + dy * dy;
-                            if (distSq < trampleRadiusSq)
-                            {
-                                float dist = (float)Math.Sqrt(distSq);
-                                float targetFlatten = 1.0f - (dist / trampleRadius);
+                float bx = blades[i].X;
+                float by = blades[i].Y;
 
-                                if (targetFlatten > blades[i].Flatten)
+                // בדיקת Bounding Box כללי מהירה: בדיקה האם הלהב נמצא באזור של דורך כלשהו
+                if (count > 0 && bx >= minX && bx <= maxX && by >= minY && by <= maxY)
+                {
+                    for (int t = 0; t < count; t++)
+                    {
+                        float dx = bx - tramplers[t].X;
+                        float tr = tramplers[t].Radius;
+
+                        if (dx > -tr && dx < tr)
+                        {
+                            float dy = by - tramplers[t].Y;
+                            if (dy > -tr && dy < tr)
+                            {
+                                float distSq = dx * dx + dy * dy;
+                                if (distSq < tramplers[t].RadiusSq)
                                 {
-                                    blades[i].Flatten = targetFlatten;
-                                    if (dist > 0.05f)
+                                    float dist = (float)Math.Sqrt(distSq);
+                                    float targetFlatten = 1.0f - (dist / tr);
+
+                                    if (targetFlatten > blades[i].Flatten)
                                     {
-                                        blades[i].FlattenDirX = dx / dist;
-                                        blades[i].FlattenDirY = dy / dist;
-                                    }
-                                    else
-                                    {
-                                        blades[i].FlattenDirX = 0.707f;
-                                        blades[i].FlattenDirY = 0.707f;
+                                        blades[i].Flatten = targetFlatten;
+                                        if (dist > 0.05f)
+                                        {
+                                            blades[i].FlattenDirX = dx / dist;
+                                            blades[i].FlattenDirY = dy / dist;
+                                        }
+                                        else
+                                        {
+                                            blades[i].FlattenDirX = 0.707f;
+                                            blades[i].FlattenDirY = 0.707f;
+                                        }
                                     }
                                 }
                             }
@@ -253,7 +391,7 @@ namespace OpenGL
                     }
                 }
 
-                // התאוששות קפיצית טבעית כאשר הדמות מתרחקת
+                // התאוששות קפיצית טבעית כאשר אובייקט מתרחק
                 if (blades[i].Flatten > 0.0f)
                 {
                     blades[i].Flatten -= dt * 0.70f;
@@ -280,13 +418,14 @@ namespace OpenGL
         /// <summary>
         /// מצייר את להבי הדשא הדקים ישירות על גבי הקרקע,
         /// וכן את צל הדשא המוטל על הקרקע בצבע שחור מעט שקוף.
+        /// מעדכן מעיכת דשא עבור כל ShadowObject שדורך על המשטח.
         /// </summary>
-        public void Draw(Character character)
+        public void Draw(Character character = null, IEnumerable<ShadowObject> shadowObjects = null)
         {
             if (!isInitialized || blades == null) return;
 
             lastCharacter = character;
-            Update(character);
+            Update(character, shadowObjects);
 
             float floorZ = WorldSkyBox.FloorHeight; // מוצמד ישירות לרצפת cube-1
 

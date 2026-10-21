@@ -64,17 +64,17 @@ namespace OpenGL
         /// <summary>
         /// מיקום המפלצת בציר X
         /// </summary>
-        public float X { get; set; } = 0.0f;
+        public override float X { get; set; } = 0.0f;
 
         /// <summary>
         /// מיקום המפלצת בציר Y
         /// </summary>
-        public float Y { get; set; } = 0.0f;
+        public override float Y { get; set; } = 0.0f;
 
         /// <summary>
         /// מיקום המפלצת בציר Z (גובה)
         /// </summary>
-        public float Z { get; set; } = 0.0f;
+        public override float Z { get; set; } = 0.0f;
 
         /// <summary>
         /// זווית הסיבוב של המפלצת (במעלות) סביב ציר Z
@@ -89,7 +89,24 @@ namespace OpenGL
         /// <summary>
         /// האם המפלצת נראית בסצינה
         /// </summary>
-        public bool IsVisible { get; set; } = true;
+        public override bool IsVisible { get; set; } = true;
+
+        /// <summary>
+        /// רדיוס מעיכת הדשא של המפלצת בעת דריכה (מותאם לרדיוס ההתנגשות האפקטיבי)
+        /// </summary>
+        public override float TrampleRadius => EffectiveCollisionRadius > 0.1f ? EffectiveCollisionRadius * 1.5f : 1.35f;
+
+        /// <summary>
+        /// ציור המפלצת עבור השתקפות במים באגם (ללא צל קרקע וללא מד חיים)
+        /// </summary>
+        public override void DrawForReflection()
+        {
+            if (!IsVisible) return;
+            bool prevHealthBar = ShowHealthBar;
+            ShowHealthBar = false;
+            DrawMonster(false);
+            ShowHealthBar = prevHealthBar;
+        }
 
         /// <summary>
         /// האם להציג מד חיים (Health Bar) גרפי מעל המפלצת

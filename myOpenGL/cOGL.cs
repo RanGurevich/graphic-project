@@ -47,6 +47,8 @@ namespace OpenGL
             Width = p.Width;
             Height = p.Height; 
             lake = new Lake(10.0f, 10.0f, 7.5f, grass);
+            lake.ShadowObjectsProvider = GetAllShadowObjects;
+            grass.ShadowObjectsProvider = GetAllShadowObjects;
             InitializeGL();
             
             // פיזור רנדומלי חכם של כל המפלצות במרחב העולם
@@ -197,6 +199,7 @@ namespace OpenGL
         public void CreateLake(float centerX, float centerY, float radius)
         {
             lake = new Lake(centerX, centerY, radius, grass);
+            lake.ShadowObjectsProvider = GetAllShadowObjects;
             if (character != null)
             {
                 lake.CharacterRef = character;
@@ -250,7 +253,7 @@ namespace OpenGL
 
         /// <summary>
         /// מטפל בתקיפה (אגרוף או בעיטה) של הדמות מול מפלצת:
-        /// בודק מפלצות קרובות בחזית, גורם 15-40 נזק, ומעלים מפלצת שמתה מהזיכרון
+        /// בודק מפלצות קרובות בחזית, גורם 45-70 נזק, ומעלים מפלצת שמתה מהזיכרון
         /// </summary>
         public Monster HandleCharacterAttack(Character charRef, int damage)
         {
@@ -339,6 +342,25 @@ namespace OpenGL
                 {
                     if (Snails[i] != null && Snails[i].IsAlive && Snails[i].IsVisible)
                         yield return Snails[i];
+                }
+            }
+        }
+
+        /// <summary>
+        /// מחזיר את כל אובייקטי ה-ShadowObject בסצינה (הדמות וכל המפלצות שנוצרו)
+        /// </summary>
+        public IEnumerable<ShadowObject> GetAllShadowObjects()
+        {
+            if (character != null && character.IsVisible)
+            {
+                yield return character;
+            }
+
+            foreach (var monster in GetAllMonsters())
+            {
+                if (monster != null && monster.IsVisible)
+                {
+                    yield return monster;
                 }
             }
         }
@@ -495,13 +517,13 @@ namespace OpenGL
             // 3. ציור העולם - הקוביה (דשא, שמיים וקירות) והדמות באותה מערכת עולם!
             WorldSkyBox.DrawEarth();
 
-            // ציור הדשא הדינמי על גבי cube-1
+            // ציור הדשא הדינמי על גבי cube-1 עם מעיכה של כל ShadowObject הדורך על הדשא
             if (grass != null)
             {
-                grass.Draw(character);
+                grass.Draw(character, GetAllShadowObjects());
             }
 
-            // ציור האגם על גבי משטח הרצפה
+            // ציור האגם על גבי משטח הרצפה עם השתקפות של כל ShadowObject
             if (lake != null)
             {
                 lake.Draw();
