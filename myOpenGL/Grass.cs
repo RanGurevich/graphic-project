@@ -195,7 +195,7 @@ namespace OpenGL
         public List<ShadowObject> TrampleObjects { get; } = new List<ShadowObject>();
 
         /// <summary>
-        /// ספק אובייקטי ShadowObject חיצוני (לדוגמה: מ-cOGL המציג את כל הדמויות והמפלצות בסצינה)
+        /// ספק אובייקטי ShadowObject חיצוני (לדוגמה: מ-DrawGame המציג את כל הדמויות והמפלצות בסצינה)
         /// </summary>
         public Func<IEnumerable<ShadowObject>> ShadowObjectsProvider { get; set; }
 

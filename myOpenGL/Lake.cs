@@ -41,7 +41,7 @@ namespace OpenGL
         public List<ShadowObject> ShadowObjects { get; } = new List<ShadowObject>();
 
         /// <summary>
-        /// ספק אובייקטי ShadowObject חיצוני (לדוגמה: cOGL המספק את כל האובייקטים והמפלצות בסצינה)
+        /// ספק אובייקטי ShadowObject חיצוני (לדוגמה: DrawGame המספק את כל האובייקטים והמפלצות בסצינה)
         /// </summary>
         public Func<IEnumerable<ShadowObject>> ShadowObjectsProvider { get; set; }
 
@@ -417,7 +417,7 @@ namespace OpenGL
         {
             HashSet<ShadowObject> seen = new HashSet<ShadowObject>();
 
-            // 1. אובייקטים מספק חיצוני (cOGL)
+            // 1. אובייקטים מספק חיצוני (DrawGame)
             if (ShadowObjectsProvider != null)
             {
                 var providerObjs = ShadowObjectsProvider();
@@ -504,7 +504,7 @@ namespace OpenGL
                     }
                 }, drawRealObject: false);
 
-                // ציור האובייקטים האמיתיים שנרשמו מעל המים (האובייקטים בעולם מצוירים ב-cOGL.DrawAll)
+                // ציור האובייקטים האמיתיים שנרשמו מעל המים (האובייקטים בעולם מצוירים ב-DrawGame.DrawAll)
                 for (int i = 0; i < ReflectedObjects.Count; i++)
                 {
                     ReflectedObjects[i]?.Invoke();

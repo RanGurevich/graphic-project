@@ -61,6 +61,8 @@
     <Compile Include="mushroom.Cap.cs">
       <DependentUpon>mushroom.cs</DependentUpon>
     </Compile>
+    <Compile Include="eGameMonster.cs" />
+    <Compile Include="eSnailColor.cs" />
     <Compile Include="snail.cs" />
     <Compile Include="snail.Textures.cs">
       <DependentUpon>snail.cs</DependentUpon>
@@ -84,7 +86,7 @@
     <Compile Include="Character.Rendering.cs">
       <DependentUpon>Character.cs</DependentUpon>
     </Compile>
-    <Compile Include="cOGL.cs" />
+    <Compile Include="DrawGame.cs" />
     <Compile Include="WorldSkyBox.cs" />
     <Compile Include="Grass.cs" />
     <Compile Include="Lake.cs" />

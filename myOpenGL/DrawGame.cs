@@ -5,8 +5,33 @@ using System.Windows.Forms;
 
 namespace OpenGL
 {
-    class cOGL
+    class DrawGame
     {
+        #region Constants - Monster Amounts & Lake Configuration
+
+        // כמות מפלצות (Monster Amounts)
+        public const int RED_SNAIL_AMOUNT = 3;
+        public const int BLUE_SNAIL_AMOUNT = 3;
+        public const int SNAIL_AMOUNT = RED_SNAIL_AMOUNT + BLUE_SNAIL_AMOUNT;
+        public const int SNAILS_AMOUNT = SNAIL_AMOUNT;
+
+        public const int MUSHROOM_AMOUNT = 7;
+        public const int MUSHROOMS_AMOUNT = MUSHROOM_AMOUNT;
+
+        public const int TRIANGLE_AMOUNT = 5;
+        public const int TRIANGLES_AMOUNT = TRIANGLE_AMOUNT;
+
+        // סך כל המפלצות בעולם
+        public const int TOTAL_MONSTERS_AMOUNT = SNAIL_AMOUNT + MUSHROOM_AMOUNT + TRIANGLE_AMOUNT;
+
+        // הגדרות וגודל האגם (Lake Configuration & Size)
+        public const float LAKE_RADIUS = 7.5f;
+        public const float LAKE_SIZE = LAKE_RADIUS;
+        public const float LAKE_CENTER_X = 10.0f;
+        public const float LAKE_CENTER_Y = 10.0f;
+
+        #endregion
+
         Control p;
         Character character = null;
         Grass grass = new Grass();
@@ -19,43 +44,33 @@ namespace OpenGL
         int Width;
         int Height;
 
-        /// <summary>
-        /// רשימת 5 מפלצות הפירמידה (TRINAGLE) בעולם
-        /// </summary>
         public List<TRINAGLE> Monsters = new List<TRINAGLE>();
-
-        /// <summary>
-        /// רשימת 7 מפלצות פטריה כתומה (mushroom) בעולם
-        /// </summary>
         public List<mushroom> Mushrooms = new List<mushroom>();
-
-        /// <summary>
-        /// תאימות לגישה לפטריה בודדת (מחזירה את הפטריה הראשונה ברשימה)
-        /// </summary>
         public mushroom MushroomMonster => Mushrooms.Count > 0 ? Mushrooms[0] : null;
 
         /// <summary>
-        /// רשימת 6 מפלצות חילזון (3 אדומים ו-3 כחולים) בעולם
+        /// רשימת מפלצות חילזון (אדומים וכחולים) בעולם
         /// </summary>
         public List<snail> Snails = new List<snail>();
 
         private static readonly Random _spawnRand = new Random();
 
-        public cOGL(Control pb)
+        public DrawGame(Control pb)
         {
             p = pb;
             Width = p.Width;
             Height = p.Height; 
-            lake = new Lake(10.0f, 10.0f, 7.5f, grass);
+            lake = new Lake(LAKE_CENTER_X, LAKE_CENTER_Y, LAKE_RADIUS, grass);
             lake.ShadowObjectsProvider = GetAllShadowObjects;
             grass.ShadowObjectsProvider = GetAllShadowObjects;
             InitializeGL();
             
-            // פיזור רנדומלי חכם של כל המפלצות במרחב העולם
+            // פיזור רנדומלי חכם של כל המפלצות במרחב העולם באמצעות הפונקציה המודולרית InitializeMonster
             List<float[]> occupiedPositions = new List<float[]>();
-            Initialize7Mushrooms(occupiedPositions);
-            Initialize6Snails(occupiedPositions);
-            Initialize5Monsters(occupiedPositions);
+            InitializeMonster(eGameMonster.MUSHROOM, MUSHROOM_AMOUNT, occupied: occupiedPositions);
+            InitializeMonster(eGameMonster.SNAIL, RED_SNAIL_AMOUNT, eSnailColor.Red, occupiedPositions);
+            InitializeMonster(eGameMonster.SNAIL, BLUE_SNAIL_AMOUNT, eSnailColor.Blue, occupiedPositions);
+            InitializeMonster(eGameMonster.TRINAGLE, TRIANGLE_AMOUNT, occupied: occupiedPositions);
 
             DrawAll();
         }
@@ -65,9 +80,9 @@ namespace OpenGL
         /// </summary>
         private float[] GetRandomSpawnPosition(List<float[]> occupied, float minDistance = 2.8f)
         {
-            float lakeX = 10.0f;
-            float lakeY = 10.0f;
-            float lakeAvoidRadius = 8.5f;
+            float lakeX = lake != null ? lake.CenterX : LAKE_CENTER_X;
+            float lakeY = lake != null ? lake.CenterY : LAKE_CENTER_Y;
+            float lakeAvoidRadius = (lake != null ? lake.Radius : LAKE_RADIUS) + 1.0f;
             float maxBound = 15.0f;
 
             for (int attempt = 0; attempt < 250; attempt++)
@@ -115,88 +130,137 @@ namespace OpenGL
             return fallback;
         }
 
+        #region Modular Monster Initialization (eGameMonster)
+
+        public void InitializeMonster(eGameMonster type, int count, eSnailColor snailColor = eSnailColor.Red, List<float[]> occupied = null, bool clearExisting = false)
+        {
+            if (clearExisting)
+            {
+                ClearMonsters(type);
+            }
+
+            if (count <= 0) return;
+
+            float minDistance = (type == eGameMonster.SNAIL) ? 3.0f : 3.2f;
+
+            for (int i = 0; i < count; i++)
+            {
+                float[] pos = GetRandomSpawnPosition(occupied, minDistance);
+                Monster monster = CreateMonsterInstance(type, pos[0], pos[1], i, snailColor);
+                if (monster != null)
+                {
+                    AddMonsterToList(monster);
+                }
+            }
+        }
+
+
         /// <summary>
-        /// מאתחל 7 מפלצות פטריה (mushroom) בפיזור אקראי רחב וטבעי בעולם
+        /// מייצר מופע יחיד של מפלצת לפי סוג, מיקום, אינדקס וצבע חילזון.
+        /// אורך החיים מוגרל באופן רנדומלי בין 90 ל-150 לכל מפלצת שנוצרת.
         /// </summary>
-        public void Initialize7Mushrooms(List<float[]> occupied = null)
+        private Monster CreateMonsterInstance(eGameMonster type, float x, float y, int index, eSnailColor snailColor)
+        {
+            float rotation = (float)(_spawnRand.NextDouble() * 360.0);
+            int health = _spawnRand.Next(90, 151); // ערך חיים רנדומלי בין 90 ל-150 כולל
+
+            switch (type)
+            {
+                case eGameMonster.MUSHROOM:
+                {
+                    float[] scales = { 1.05f, 0.95f, 1.0f, 1.10f, 0.85f, 1.25f, 1.0f };
+                    return new mushroom(health, x, y)
+                    {
+                        Scale = scales[index % scales.Length],
+                        RotationAngle = rotation
+                    };
+                }
+
+                case eGameMonster.SNAIL:
+                {
+                    float scale = 0.95f + (float)_spawnRand.NextDouble() * 0.25f;
+                    return new snail(snailColor, health, x, y)
+                    {
+                        Scale = scale,
+                        RotationAngle = rotation
+                    };
+                }
+
+                case eGameMonster.TRINAGLE:
+                {
+                    var configs = new[]
+                    {
+                        new { R = 0.95f, G = 0.25f, B = 0.20f },
+                        new { R = 0.95f, G = 0.65f, B = 0.10f },
+                        new { R = 0.70f, G = 0.20f, B = 0.90f },
+                        new { R = 0.15f, G = 0.85f, B = 0.35f },
+                        new { R = 0.20f, G = 0.75f, B = 0.95f }
+                    };
+                    var cfg = configs[index % configs.Length];
+                    return new TRINAGLE(health, x, y, cfg.R, cfg.G, cfg.B)
+                    {
+                        RotationAngle = rotation
+                    };
+                }
+
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// מוסיף את המפלצת לרשימה המתאימה לה לפי הסוג שלה
+        /// </summary>
+        private void AddMonsterToList(Monster monster)
+        {
+            if (monster is mushroom m)
+            {
+                Mushrooms.Add(m);
+            }
+            else if (monster is snail s)
+            {
+                Snails.Add(s);
+            }
+            else if (monster is TRINAGLE t)
+            {
+                Monsters.Add(t);
+            }
+        }
+
+        /// <summary>
+        /// מנקה את רשימת המפלצות לפי סוג
+        /// </summary>
+        public void ClearMonsters(eGameMonster type)
+        {
+            switch (type)
+            {
+                case eGameMonster.MUSHROOM:
+                    Mushrooms.Clear();
+                    break;
+                case eGameMonster.SNAIL:
+                    Snails.Clear();
+                    break;
+                case eGameMonster.TRINAGLE:
+                    Monsters.Clear();
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// מנקה את כל המפלצות מכל הסוגים בעולם
+        /// </summary>
+        public void ClearAllMonsters()
         {
             Mushrooms.Clear();
-            int[] healths = { 120, 100, 110, 130, 80, 150, 100 };
-            float[] scales = { 1.05f, 0.95f, 1.0f, 1.10f, 0.85f, 1.25f, 1.0f };
-
-            for (int i = 0; i < 7; i++)
-            {
-                float[] pos = GetRandomSpawnPosition(occupied, 3.2f);
-                Mushrooms.Add(new mushroom(healths[i], pos[0], pos[1])
-                {
-                    Scale = scales[i],
-                    RotationAngle = (float)(_spawnRand.NextDouble() * 360.0)
-                });
-            }
-        }
-
-        /// <summary>
-        /// מאתחל 6 חלזונות (3 אדומים ו-3 כחולים) בפיזור אקראי במרחב העולם
-        /// </summary>
-        public void Initialize6Snails(List<float[]> occupied = null)
-        {
             Snails.Clear();
-
-            // 3 חלזונות אדומים (Red Snails)
-            for (int i = 0; i < 3; i++)
-            {
-                float[] pos = GetRandomSpawnPosition(occupied, 3.0f);
-                int health = 90 + i * 15;
-                float scale = 0.95f + (float)_spawnRand.NextDouble() * 0.25f;
-
-                Snails.Add(new snail(SnailColor.Red, health, pos[0], pos[1])
-                {
-                    Scale = scale,
-                    RotationAngle = (float)(_spawnRand.NextDouble() * 360.0)
-                });
-            }
-
-            // 3 חלזונות כחולים (Blue Snails)
-            for (int i = 0; i < 3; i++)
-            {
-                float[] pos = GetRandomSpawnPosition(occupied, 3.0f);
-                int health = 80 + i * 20;
-                float scale = 0.95f + (float)_spawnRand.NextDouble() * 0.25f;
-
-                Snails.Add(new snail(SnailColor.Blue, health, pos[0], pos[1])
-                {
-                    Scale = scale,
-                    RotationAngle = (float)(_spawnRand.NextDouble() * 360.0)
-                });
-            }
-        }
-
-        /// <summary>
-        /// מאתחל 5 מפלצות TRINAGLE בפיזור אקראי רחב בעולם
-        /// </summary>
-        public void Initialize5Monsters(List<float[]> occupied = null)
-        {
             Monsters.Clear();
-            var configs = new[]
-            {
-                new { Health = 100, R = 0.95f, G = 0.25f, B = 0.20f },
-                new { Health = 120, R = 0.95f, G = 0.65f, B = 0.10f },
-                new { Health = 150, R = 0.70f, G = 0.20f, B = 0.90f },
-                new { Health =  80, R = 0.15f, G = 0.85f, B = 0.35f },
-                new { Health = 200, R = 0.20f, G = 0.75f, B = 0.95f }
-            };
-
-            foreach (var cfg in configs)
-            {
-                float[] pos = GetRandomSpawnPosition(occupied, 3.2f);
-                Monsters.Add(new TRINAGLE(cfg.Health, pos[0], pos[1], cfg.R, cfg.G, cfg.B)
-                {
-                    RotationAngle = (float)(_spawnRand.NextDouble() * 360.0)
-                });
-            }
         }
 
-        public void CreateLake(float centerX, float centerY, float radius)
+        #endregion
+
+
+
+        public void CreateLake(float centerX = LAKE_CENTER_X, float centerY = LAKE_CENTER_Y, float radius = LAKE_RADIUS)
         {
             lake = new Lake(centerX, centerY, radius, grass);
             lake.ShadowObjectsProvider = GetAllShadowObjects;
@@ -385,7 +449,7 @@ namespace OpenGL
             return true;
         }
 
-        ~cOGL()
+        ~DrawGame()
         {
             WGL.wglDeleteContext(m_uint_RC);
         }
@@ -408,51 +472,6 @@ namespace OpenGL
             get { return m_uint_RC; }
         }
 
-        void DrawOldAxes()
-        {
-            //for this time
-            //Lights positioning is here!!!
-            float[] pos = new float[4];
-            pos[0] = 10; pos[1] = 10; pos[2] = 10; pos[3] = 1;
-            GL.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, pos);
-            GL.glDisable(GL.GL_LIGHTING);
-
-            //INITIAL axes
-            GL.glEnable(GL.GL_LINE_STIPPLE);
-            GL.glLineStipple(1, 0xFF00);  //  dotted   
-            GL.glBegin(GL.GL_LINES);
-            //x  RED
-            GL.glColor3f(1.0f, 0.0f, 0.0f);
-            GL.glVertex3f(-3.0f, 0.0f, 0.0f);
-            GL.glVertex3f(3.0f, 0.0f, 0.0f);
-            //y  GREEN 
-            GL.glColor3f(0.0f, 1.0f, 0.0f);
-            GL.glVertex3f(0.0f, -3.0f, 0.0f);
-            GL.glVertex3f(0.0f, 3.0f, 0.0f);
-            //z  BLUE
-            GL.glColor3f(0.0f, 0.0f, 1.0f);
-            GL.glVertex3f(0.0f, 0.0f, -3.0f);
-            GL.glVertex3f(0.0f, 0.0f, 3.0f);
-            GL.glEnd();
-            GL.glDisable(GL.GL_LINE_STIPPLE);
-        }
-        void DrawAxes()
-        {
-            GL.glBegin(GL.GL_LINES);
-            //x  RED
-            GL.glColor3f(1.0f, 0.0f, 0.0f);
-            GL.glVertex3f(-10.0f, 0.0f, 0.0f);
-            GL.glVertex3f(10.0f, 0.0f, 0.0f);
-            //y  GREEN 
-            GL.glColor3f(0.0f, 1.0f, 0.0f);
-            GL.glVertex3f(0.0f, -3.0f, 0.0f);
-            GL.glVertex3f(0.0f, 3.0f, 0.0f);
-            //z  BLUE
-            GL.glColor3f(0.0f, 0.0f, 1.0f);
-            GL.glVertex3f(0.0f, 0.0f, -3.0f);
-            GL.glVertex3f(0.0f, 0.0f, 3.0f);
-            GL.glEnd();
-        }
 
        
 
@@ -529,13 +548,12 @@ namespace OpenGL
                 lake.Draw();
             }
 
-            DrawAxes();
             if(character != null)
             {
                 character.DrawCharacter();
             }
 
-            // ציור 5 מפלצות הפירמידה (TRINAGLE)
+            // ציור מפלצות הפירמידה (TRINAGLE)
             if (Monsters != null)
             {
                 for (int i = 0; i < Monsters.Count; i++)
@@ -544,7 +562,7 @@ namespace OpenGL
                 }
             }
 
-            // ציור 7 מפלצות הפטריה (mushroom)
+            // ציור מפלצות הפטריה (mushroom)
             if (Mushrooms != null)
             {
                 for (int i = 0; i < Mushrooms.Count; i++)
@@ -553,7 +571,7 @@ namespace OpenGL
                 }
             }
 
-            // ציור 6 מפלצות החילזון (3 אדומים ו-3 כחולים)
+            // ציור מפלצות החילזון (snail)
             if (Snails != null)
             {
                 for (int i = 0; i < Snails.Count; i++)

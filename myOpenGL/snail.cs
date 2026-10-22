@@ -1,5 +1,6 @@
 using System;
 using OpenGL;
+using myOpenGL;
 
 namespace OpenGL
 {
@@ -59,6 +60,14 @@ namespace OpenGL
         #endregion
 
         #region בנאים (Constructors)
+
+        /// <summary>
+        /// בנאי המקבל טיפוס eSnailColor מתוך eSnailColor.cs
+        /// </summary>
+        public snail(eSnailColor color, int initialHealth = 100, float x = 0.0f, float y = 0.0f, float z = float.NaN)
+            : this(color == eSnailColor.Red ? SnailColor.Red : SnailColor.Blue, initialHealth, x, y, z)
+        {
+        }
 
         /// <summary>
         /// בנאי ראשי המקבל סוג צבע (SnailColor.Red או SnailColor.Blue), נקודות חיים ומיקום התחלתי
@@ -187,6 +196,9 @@ namespace OpenGL
     public class Snail : snail
     {
         public Snail(SnailColor color, int health = 100, float x = 0.0f, float y = 0.0f, float z = float.NaN)
+            : base(color, health, x, y, z) { }
+
+        public Snail(eSnailColor color, int health = 100, float x = 0.0f, float y = 0.0f, float z = float.NaN)
             : base(color, health, x, y, z) { }
 
         public Snail(bool isRed, int health = 100, float x = 0.0f, float y = 0.0f, float z = float.NaN)

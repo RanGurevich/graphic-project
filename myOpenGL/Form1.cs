@@ -12,55 +12,74 @@ namespace myOpenGL
 {
     public partial class Form1 : Form
     {
-        cOGL cGL;
+        DrawGame cGL;
         private Character character;
 
-        // משתני שליטה במבט עכבר
         private Point lastMousePos;
         private bool isMouseLookActive = true;
         private bool isFirstMouseMove = true;
         private bool isCenteringCursor = false;
+        private bool isCursorHidden = false;
         private Timer renderTimer;
 
         public Form1()
         {
             InitializeComponent();
-            cGL = new cOGL(panel1);
+            cGL = new DrawGame(panel1);
             character = new Character(0, 0, 0);
             cGL.SetCharacter(character);
 
-            // אירועי עכבר למבט כמו במשחקי מחשב
             panel1.MouseDown += panel1_MouseDown;
             panel1.MouseMove += panel1_MouseMove;
             panel1.MouseClick += panel1_MouseClick;
             panel1.MouseWheel += panel1_MouseWheel;
             this.MouseWheel += panel1_MouseWheel;
-            this.Activated += (s, e) => { isFirstMouseMove = true; };
+            this.Activated += (s, e) => 
+            { 
+                isFirstMouseMove = true;
+                UpdateCursorVisibility();
+            };
+            this.Deactivate += (s, e) => 
+            { 
+                UpdateCursorVisibility(); 
+            };
+            this.FormClosing += (s, e) =>
+            {
+                if (isCursorHidden)
+                {
+                    Cursor.Show();
+                    isCursorHidden = false;
+                }
+            };
 
-            // טיימר רציף להנפשת רוח בדשא והתאוששות דריכה חלקה בזמן אמת
             renderTimer = new Timer();
-            renderTimer.Interval = 25; // ~40 FPS
+            renderTimer.Interval = 25;
             renderTimer.Tick += (s, e) => { cGL.DrawAll(); };
             renderTimer.Start();
 
-            // חובה כדי שהטופס יתפוס את הלחיצות על המקלדת לפני פקדים אחרים (כמו הפאנל)
             this.KeyPreview = true;
+        }
+
+        private void UpdateCursorVisibility()
+        {
+            bool shouldHide = isMouseLookActive && Form.ActiveForm == this;
+            if (shouldHide && !isCursorHidden)
+            {
+                Cursor.Hide();
+                isCursorHidden = true;
+            }
+            else if (!shouldHide && isCursorHidden)
+            {
+                Cursor.Show();
+                isCursorHidden = false;
+            }
         }
 
         private void SetMouseLook(bool active)
         {
             isMouseLookActive = active;
             isFirstMouseMove = true;
-            if (isMouseLookActive)
-            {
-                panel1.Cursor = Cursors.Cross;
-                this.Text = "OpenGL Game [WASD: תנועה | קליק שמאלי: אגרוף | קליק ימני: בעיטה | גלגלת: זום | ESC: שחרור סמן]";
-            }
-            else
-            {
-                panel1.Cursor = Cursors.Default;
-                this.Text = "OpenGL Game [סמן משוחרר | לחץ שמאלי על המסך לנעילה מחדש]";
-            }
+            UpdateCursorVisibility();
         }
 
         private void panel1_MouseDown(object sender, MouseEventArgs e)
@@ -72,8 +91,6 @@ namespace myOpenGL
                 return;
             }
 
-            // הפעלת תקיפות הדמות: קליק ימני = בעיטה, קליק שמאלי = אגרוף
-            // אם מתרחשת באותו רגע בעיטה או אגרוף - לא ניתן לעשות פעולה נוספת עד לסיום ההתקפה
             if (character != null)
             {
                 if (character.IsAttacking)
@@ -155,7 +172,6 @@ namespace myOpenGL
 
         private void panel1_MouseClick(object sender, MouseEventArgs e)
         {
-            // מקש ימני מנוטרל מהפעולה הקודמת (GetOpenGLCoords הוסר)
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)

@@ -50,7 +50,7 @@ namespace myOpenGL
         #region אירועי אנימציה (Animation Events)
 
         /// <summary>
-        /// אירוע המופעל בכל פריים של אנימציית מפרקים או הליכה (משמש לרענון הציור ב-cOGL)
+        /// אירוע המופעל בכל פריים של אנימציית מפרקים או הליכה (משמש לרענון הציור ב-DrawGame)
         /// </summary>
         public event Action OnAnimationStep;
 
