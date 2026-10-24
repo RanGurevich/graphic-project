@@ -3,16 +3,24 @@
   "WorkspaceRootPath": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{D118B639-8BF0-4AB3-B64D-254EE7731890}|myOpenGL\\myOpenGL.csproj|C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myopengl\\drawgame.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D118B639-8BF0-4AB3-B64D-254EE7731890}|myOpenGL\\myOpenGL.csproj|solutionrelative:myopengl\\drawgame.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D118B639-8BF0-4AB3-B64D-254EE7731890}|myOpenGL\\myOpenGL.csproj|c:\\users\\ran70\\desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myopengl\\shadowobject.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D118B639-8BF0-4AB3-B64D-254EE7731890}|myOpenGL\\myOpenGL.csproj|solutionrelative:myopengl\\shadowobject.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D118B639-8BF0-4AB3-B64D-254EE7731890}|myOpenGL\\myOpenGL.csproj|C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myopengl\\character.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D118B639-8BF0-4AB3-B64D-254EE7731890}|myOpenGL\\myOpenGL.csproj|solutionrelative:myopengl\\character.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{D118B639-8BF0-4AB3-B64D-254EE7731890}|myOpenGL\\myOpenGL.csproj|c:\\users\\ran70\\desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myopengl\\esnailcolor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D118B639-8BF0-4AB3-B64D-254EE7731890}|myOpenGL\\myOpenGL.csproj|solutionrelative:myopengl\\esnailcolor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D118B639-8BF0-4AB3-B64D-254EE7731890}|myOpenGL\\myOpenGL.csproj|C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myopengl\\snail.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D118B639-8BF0-4AB3-B64D-254EE7731890}|myOpenGL\\myOpenGL.csproj|solutionrelative:myopengl\\snail.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D118B639-8BF0-4AB3-B64D-254EE7731890}|myOpenGL\\myOpenGL.csproj|C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myopengl\\drawgame.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D118B639-8BF0-4AB3-B64D-254EE7731890}|myOpenGL\\myOpenGL.csproj|solutionrelative:myopengl\\drawgame.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D118B639-8BF0-4AB3-B64D-254EE7731890}|myOpenGL\\myOpenGL.csproj|C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myopengl\\worldskybox.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -37,10 +45,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{D118B639-8BF0-4AB3-B64D-254EE7731890}|myOpenGL\\myOpenGL.csproj|C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myopengl\\pics\\grass.png||{58961B49-13E0-48C0-9258-13CBC4D40279}",
       "RelativeMoniker": "D:0:0:{D118B639-8BF0-4AB3-B64D-254EE7731890}|myOpenGL\\myOpenGL.csproj|solutionrelative:myopengl\\pics\\grass.png||{58961B49-13E0-48C0-9258-13CBC4D40279}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D118B639-8BF0-4AB3-B64D-254EE7731890}|myOpenGL\\myOpenGL.csproj|C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myopengl\\character.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D118B639-8BF0-4AB3-B64D-254EE7731890}|myOpenGL\\myOpenGL.csproj|solutionrelative:myopengl\\character.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D118B639-8BF0-4AB3-B64D-254EE7731890}|myOpenGL\\myOpenGL.csproj|C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myopengl\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -70,11 +74,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 5,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 6,
               "Title": "cOGL.cs",
               "DocumentMoniker": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\cOGL.cs",
               "RelativeDocumentMoniker": "myOpenGL\\cOGL.cs",
@@ -91,6 +95,19 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
+              "Title": "ShadowObject.cs",
+              "DocumentMoniker": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\ShadowObject.cs",
+              "RelativeDocumentMoniker": "myOpenGL\\ShadowObject.cs",
+              "ToolTip": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\ShadowObject.cs",
+              "RelativeToolTip": "myOpenGL\\ShadowObject.cs",
+              "ViewState": "AgIAABEAAAAAAAAAAAAmwCcAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-23T20:42:51.916Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
               "Title": "snail.cs",
               "DocumentMoniker": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\snail.cs",
               "RelativeDocumentMoniker": "myOpenGL\\snail.cs",
@@ -102,32 +119,33 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 3,
               "Title": "eSnailColor.cs",
               "DocumentMoniker": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\eSnailColor.cs",
               "RelativeDocumentMoniker": "myOpenGL\\eSnailColor.cs",
               "ToolTip": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\eSnailColor.cs",
               "RelativeToolTip": "myOpenGL\\eSnailColor.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAAEAAAAAAAAAAAAqwAQAAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-10-22T07:30:52.08Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "DrawGame.cs",
               "DocumentMoniker": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\DrawGame.cs",
               "RelativeDocumentMoniker": "myOpenGL\\DrawGame.cs",
               "ToolTip": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\DrawGame.cs",
               "RelativeToolTip": "myOpenGL\\DrawGame.cs",
-              "ViewState": "AgIAADIAAAAAAAAAAAAiwC8AAAA/AAAAAAAAAA==",
+              "ViewState": "AgIAAAUCAAAAAAAAAAAzwBACAAAdAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-22T07:30:30.301Z"
+              "WhenOpened": "2026-10-22T07:30:30.301Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "WorldSkyBox.cs",
               "DocumentMoniker": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\WorldSkyBox.cs",
               "RelativeDocumentMoniker": "myOpenGL\\WorldSkyBox.cs",
@@ -139,7 +157,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 10,
               "Title": "grass.png",
               "DocumentMoniker": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\pics\\grass.png",
               "RelativeDocumentMoniker": "myOpenGL\\pics\\grass.png",
@@ -150,7 +168,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 8,
               "Title": "cube-6.jpg",
               "DocumentMoniker": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\pics\\cube-6.jpg",
               "RelativeDocumentMoniker": "myOpenGL\\pics\\cube-6.jpg",
@@ -161,7 +179,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 7,
               "Title": "cube-1.jpg",
               "DocumentMoniker": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\pics\\cube-1.jpg",
               "RelativeDocumentMoniker": "myOpenGL\\pics\\cube-1.jpg",
@@ -172,7 +190,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 9,
               "Title": "cube2-4.jpg",
               "DocumentMoniker": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\pics\\cube2-4.jpg",
               "RelativeDocumentMoniker": "myOpenGL\\pics\\cube2-4.jpg",
@@ -183,7 +201,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 13,
               "Title": "Form1.Designer.cs",
               "DocumentMoniker": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\Form1.Designer.cs",
               "RelativeDocumentMoniker": "myOpenGL\\Form1.Designer.cs",
@@ -195,7 +213,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 14,
               "Title": "GLU.cs",
               "DocumentMoniker": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\GLU.cs",
               "RelativeDocumentMoniker": "myOpenGL\\GLU.cs",
@@ -207,7 +225,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 11,
               "Title": "Form1.cs",
               "DocumentMoniker": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\Form1.cs",
               "RelativeDocumentMoniker": "myOpenGL\\Form1.cs",
@@ -219,19 +237,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 2,
               "Title": "Character.cs",
               "DocumentMoniker": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\Character.cs",
               "RelativeDocumentMoniker": "myOpenGL\\Character.cs",
               "ToolTip": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\Character.cs",
               "RelativeToolTip": "myOpenGL\\Character.cs",
-              "ViewState": "AgIAAAwBAAAAAAAAAAAhwNkAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAABEAAAArAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-22T13:48:41.552Z"
+              "WhenOpened": "2026-08-22T13:48:41.552Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 15,
               "Title": "GLUT.cs",
               "DocumentMoniker": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\GLUT.cs",
               "RelativeDocumentMoniker": "myOpenGL\\GLUT.cs",
@@ -243,7 +262,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 12,
               "Title": "Form1.cs [Design]",
               "DocumentMoniker": "C:\\Users\\ran70\\Desktop\\\u05EA\u05D5\u05D0\u05E8\\\u05D2\u05E8\u05E4\u05D9\u05E7\u05D4 \u05DE\u05DE\u05D5\u05D7\u05E9\u05D1\u05EA\\graphic-project\\myOpenGL\\Form1.cs",
               "RelativeDocumentMoniker": "myOpenGL\\Form1.cs",

@@ -9,7 +9,7 @@ namespace OpenGL
     {
         #region Constants - Monster Amounts & Lake Configuration
 
-        // כמות מפלצות (Monster Amounts)
+        // Monster Amounts
         public const int RED_SNAIL_AMOUNT = 3;
         public const int BLUE_SNAIL_AMOUNT = 3;
         public const int SNAIL_AMOUNT = RED_SNAIL_AMOUNT + BLUE_SNAIL_AMOUNT;
@@ -21,10 +21,9 @@ namespace OpenGL
         public const int TRIANGLE_AMOUNT = 5;
         public const int TRIANGLES_AMOUNT = TRIANGLE_AMOUNT;
 
-        // סך כל המפלצות בעולם
         public const int TOTAL_MONSTERS_AMOUNT = SNAIL_AMOUNT + MUSHROOM_AMOUNT + TRIANGLE_AMOUNT;
 
-        // הגדרות וגודל האגם (Lake Configuration & Size)
+        // Lake Configuration & Size
         public const float LAKE_RADIUS = 7.5f;
         public const float LAKE_SIZE = LAKE_RADIUS;
         public const float LAKE_CENTER_X = 10.0f;
@@ -48,9 +47,6 @@ namespace OpenGL
         public List<mushroom> Mushrooms = new List<mushroom>();
         public mushroom MushroomMonster => Mushrooms.Count > 0 ? Mushrooms[0] : null;
 
-        /// <summary>
-        /// רשימת מפלצות חילזון (אדומים וכחולים) בעולם
-        /// </summary>
         public List<snail> Snails = new List<snail>();
 
         private static readonly Random _spawnRand = new Random();
@@ -65,7 +61,6 @@ namespace OpenGL
             grass.ShadowObjectsProvider = GetAllShadowObjects;
             InitializeGL();
             
-            // פיזור רנדומלי חכם של כל המפלצות במרחב העולם באמצעות הפונקציה המודולרית InitializeMonster
             List<float[]> occupiedPositions = new List<float[]>();
             InitializeMonster(eGameMonster.MUSHROOM, MUSHROOM_AMOUNT, occupied: occupiedPositions);
             InitializeMonster(eGameMonster.SNAIL, RED_SNAIL_AMOUNT, eSnailColor.Red, occupiedPositions);
@@ -75,9 +70,6 @@ namespace OpenGL
             DrawAll();
         }
 
-        /// <summary>
-        /// מחולל מיקום אקראי על היבשה שאינו בתוך האגם ושומר על מרחק ממפלצות אחרות
-        /// </summary>
         private float[] GetRandomSpawnPosition(List<float[]> occupied, float minDistance = 2.8f)
         {
             float lakeX = lake != null ? lake.CenterX : LAKE_CENTER_X;
@@ -87,19 +79,15 @@ namespace OpenGL
 
             for (int attempt = 0; attempt < 250; attempt++)
             {
-                // הגרלת מיקום במרחב הדשא
                 float x = (float)(_spawnRand.NextDouble() * (maxBound * 2.0f) - maxBound);
                 float y = (float)(_spawnRand.NextDouble() * (maxBound * 2.0f) - maxBound);
 
-                // בדיקה שלא נוחת בתוך מי האגם
                 float distToLake = (float)Math.Sqrt((x - lakeX) * (x - lakeX) + (y - lakeY) * (y - lakeY));
                 if (distToLake < lakeAvoidRadius) continue;
 
-                // בדיקה שאינו צמוד מדיי לנקודת ההתחלה של השחקן (0, 0)
                 float distToSpawn = (float)Math.Sqrt(x * x + y * y);
                 if (distToSpawn < 2.0f) continue;
 
-                // בדיקה שלא קרוב מדיי למפלצת אחרת שכבר נוצרה
                 bool tooClose = false;
                 if (occupied != null)
                 {
@@ -122,7 +110,6 @@ namespace OpenGL
                 }
             }
 
-            // גיבוי אם לא נמצא מיקום אידיאלי
             float fallbackX = (float)(_spawnRand.NextDouble() * 10.0f - 5.0f);
             float fallbackY = (float)(_spawnRand.NextDouble() * 10.0f - 5.0f);
             var fallback = new float[] { fallbackX, fallbackY };
@@ -155,14 +142,10 @@ namespace OpenGL
         }
 
 
-        /// <summary>
-        /// מייצר מופע יחיד של מפלצת לפי סוג, מיקום, אינדקס וצבע חילזון.
-        /// אורך החיים מוגרל באופן רנדומלי בין 90 ל-150 לכל מפלצת שנוצרת.
-        /// </summary>
         private Monster CreateMonsterInstance(eGameMonster type, float x, float y, int index, eSnailColor snailColor)
         {
             float rotation = (float)(_spawnRand.NextDouble() * 360.0);
-            int health = _spawnRand.Next(90, 151); // ערך חיים רנדומלי בין 90 ל-150 כולל
+            int health = _spawnRand.Next(90, 151);
 
             switch (type)
             {
@@ -208,9 +191,6 @@ namespace OpenGL
             }
         }
 
-        /// <summary>
-        /// מוסיף את המפלצת לרשימה המתאימה לה לפי הסוג שלה
-        /// </summary>
         private void AddMonsterToList(Monster monster)
         {
             if (monster is mushroom m)
@@ -227,9 +207,6 @@ namespace OpenGL
             }
         }
 
-        /// <summary>
-        /// מנקה את רשימת המפלצות לפי סוג
-        /// </summary>
         public void ClearMonsters(eGameMonster type)
         {
             switch (type)
@@ -246,9 +223,6 @@ namespace OpenGL
             }
         }
 
-        /// <summary>
-        /// מנקה את כל המפלצות מכל הסוגים בעולם
-        /// </summary>
         public void ClearAllMonsters()
         {
             Mushrooms.Clear();
@@ -276,10 +250,7 @@ namespace OpenGL
             this.character = character;
             Monster.GlobalCharacter = character;
 
-            // חיבור בדיקת התנגשויות תנועה של הדמות מול כל המפלצות בעולם
             character.CanMoveValidator = CanCharacterMoveTo;
-
-            // חיבור ביצוע תקיפות (אגרוף ובעיטה) מול מפלצות בקרבת מקום
             character.AttackHandler = (charRef, damage) => HandleCharacterAttack(charRef, damage);
 
             if (lake != null)
@@ -292,9 +263,6 @@ namespace OpenGL
             };
         }
 
-        /// <summary>
-        /// מסיר מפלצת שמתה מהעולם ומשחרר את האובייקט שלה מהזיכרון
-        /// </summary>
         public void RemoveMonster(Monster monster)
         {
             if (monster == null) return;
@@ -315,10 +283,6 @@ namespace OpenGL
             }
         }
 
-        /// <summary>
-        /// מטפל בתקיפה (אגרוף או בעיטה) של הדמות מול מפלצת:
-        /// בודק מפלצות קרובות בחזית, גורם 45-70 נזק, ומעלים מפלצת שמתה מהזיכרון
-        /// </summary>
         public Monster HandleCharacterAttack(Character charRef, int damage)
         {
             if (charRef == null) return null;
@@ -327,7 +291,6 @@ namespace OpenGL
             float charY = charRef.Y;
             float charAngle = charRef.CHARACTER_angle;
 
-            // וקטור כיוון הפנים האמיתי של הדמות (חזית הדמות מול המפלצות - ציר מינוס Y במרחב המקומי)
             float rad = charAngle * (float)Math.PI / 180f;
             float forwardX = (float)Math.Sin(rad);
             float forwardY = -(float)Math.Cos(rad);
@@ -343,12 +306,10 @@ namespace OpenGL
                 float dy = monster.Y - charY;
                 float dist = (float)Math.Sqrt(dx * dx + dy * dy);
 
-                // טווח פגיעה: מרחק מגע קרוב מאוד בחזית
                 float hitRange = charRef.CollisionRadius + monster.EffectiveCollisionRadius + 0.85f;
 
                 if (dist <= hitRange)
                 {
-                    // בדיקת זווית: המפלצת חייבת להיות מול פני הדמות (dot > 0.25f, חרוט של כ-75 מעלות) ולא מאחוריה!
                     float dot = (dist > 0.001f) ? (dx * forwardX + dy * forwardY) / dist : 1.0f;
 
                     if (dot > 0.25f)
@@ -366,7 +327,6 @@ namespace OpenGL
             {
                 targetMonster.TakeDamage(damage);
 
-                // אם החיים ירדו ל-0 ומטה - המפלצת נעלמת ומשתחררת מהזיכרון
                 if (!targetMonster.IsAlive || targetMonster.CurrentHealth <= 0)
                 {
                     RemoveMonster(targetMonster);
@@ -379,9 +339,6 @@ namespace OpenGL
             return null;
         }
 
-        /// <summary>
-        /// מחזיר את כל המפלצות הפעילות והחיות בעולם (פירמידות, פטריות, חלזונות)
-        /// </summary>
         public IEnumerable<Monster> GetAllMonsters()
         {
             if (Monsters != null)
@@ -410,9 +367,6 @@ namespace OpenGL
             }
         }
 
-        /// <summary>
-        /// מחזיר את כל אובייקטי ה-ShadowObject בסצינה (הדמות וכל המפלצות שנוצרו)
-        /// </summary>
         public IEnumerable<ShadowObject> GetAllShadowObjects()
         {
             if (character != null && character.IsVisible)
@@ -429,9 +383,6 @@ namespace OpenGL
             }
         }
 
-        /// <summary>
-        /// בודק האם הדמות יכולה לנוע מ-(currX, currY) אל (nextX, nextY) מבלי לחדור לתחום של אף מפלצת
-        /// </summary>
         public bool CanCharacterMoveTo(float currX, float currY, float nextX, float nextY, float charRadius)
         {
             foreach (var monster in GetAllMonsters())
@@ -440,7 +391,6 @@ namespace OpenGL
                 float nextDist = monster.DistanceTo(nextX, nextY);
                 float minDist = charRadius + monster.EffectiveCollisionRadius;
 
-                // אם המיקום החדש נמצא בתוך שטח המפלצת, והדמות מתקרבת או שוהה בתוכה - התנועה נחסמת!
                 if (nextDist < minDist && nextDist <= currDist + 0.001f)
                 {
                     return false;
@@ -473,22 +423,17 @@ namespace OpenGL
         }
 
 
-       
-
-        // ===== משתני מצלמה (מבט חופשי כמו במשחקי מחשב) =====
-        public float CameraPitch = -25.0f;     // זווית הטיה מעלה/מטה (סביב ציר X)
-        public float CameraYaw = -30.0f;       // זווית סיבוב ימינה/שמאלה (סביב ציר Z)
-        public float CameraDistance = 10.0f;   // מרחק המצלמה מהדמות / מרכז
-        public float MouseSensitivity = 0.2f;  // רגישות עכבר
+        public float CameraPitch = -25.0f;
+        public float CameraYaw = -30.0f;
+        public float CameraDistance = 10.0f;
+        public float MouseSensitivity = 0.2f;
 
         public void RotateCamera(float deltaX, float deltaY)
         {
-            // סיבוב אופקי (Yaw) סביב ציר Z
             CameraYaw += deltaX * MouseSensitivity;
             while (CameraYaw >= 360.0f) CameraYaw -= 360.0f;
             while (CameraYaw < 0.0f) CameraYaw += 360.0f;
 
-            // סיבוב הדמות בהתאמה ימינה ושמאלה (רק בציר האופקי ולא בגבהים)
             if (character != null)
             {
                 character.CHARACTER_angle -= deltaX * MouseSensitivity;
@@ -496,10 +441,8 @@ namespace OpenGL
                 while (character.CHARACTER_angle < 0.0f) character.CHARACTER_angle += 360.0f;
             }
 
-            // סיבוב אנכי (Pitch) - משנה רק את זווית המצלמה למעלה/למטה, ללא השפעה על גובה/הטיית הדמות
             CameraPitch -= deltaY * MouseSensitivity;
 
-            // הגבלת זווית שלא תתהפך (בין 89- ל-89 מעלות)
             if (CameraPitch > 89.0f) CameraPitch = 89.0f;
             if (CameraPitch < -89.0f) CameraPitch = -89.0f;
 
@@ -516,33 +459,39 @@ namespace OpenGL
 
         public void DrawAll()
         {
+            // We will draw after each frame
+        
+        //DC: when the program is able to draw, if null it dont know when to draw and have to close
+        //RC: the opengl current settings memory, if null it dont know how to draw and have to close
+        //
             if (m_uint_DC == 0 || m_uint_RC == 0)
                 return;
-
+            // clearing the old data from the graphic driver in order to start a new painting
             GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT | GL.GL_STENCIL_BUFFER_BIT);
+            // we will override the rotate matrix of the project and replace it with I matrix
             GL.glLoadIdentity();
 
-            // 1. מיקום המצלמה (מרחק וזוויות מבט מעכבר)
+            // roataing via moving the mouse
             GL.glTranslatef(0.0f, 0.0f, -CameraDistance);
-            GL.glRotatef(CameraPitch, 1.0f, 0.0f, 0.0f); // עלייה / ירידה של המבט (הסתכלות לשמיים או לרצפה)
-            GL.glRotatef(CameraYaw, 0.0f, 0.0f, 1.0f);   // סיבוב ימינה / שמאלה
+            //up and down
+            GL.glRotatef(CameraPitch, 1.0f, 0.0f, 0.0f); // up and down of the camera
+            // right to left
+            GL.glRotatef(CameraYaw, 0.0f, 0.0f, 1.0f);   // right and left of the camera
 
-            // 2. תנועת המצלמה במעקב אחרי הדמות
+            //moving the camera after the character
             if (character != null)
             {
                 GL.glTranslatef(-character.X, -character.Y, -character.Z);
             }
 
-            // 3. ציור העולם - הקוביה (דשא, שמיים וקירות) והדמות באותה מערכת עולם!
+        
             WorldSkyBox.DrawEarth();
-
-            // ציור הדשא הדינמי על גבי cube-1 עם מעיכה של כל ShadowObject הדורך על הדשא
+           
             if (grass != null)
             {
                 grass.Draw(character, GetAllShadowObjects());
             }
 
-            // ציור האגם על גבי משטח הרצפה עם השתקפות של כל ShadowObject
             if (lake != null)
             {
                 lake.Draw();
@@ -553,7 +502,6 @@ namespace OpenGL
                 character.DrawCharacter();
             }
 
-            // ציור מפלצות הפירמידה (TRINAGLE)
             if (Monsters != null)
             {
                 for (int i = 0; i < Monsters.Count; i++)
@@ -562,7 +510,6 @@ namespace OpenGL
                 }
             }
 
-            // ציור מפלצות הפטריה (mushroom)
             if (Mushrooms != null)
             {
                 for (int i = 0; i < Mushrooms.Count; i++)
@@ -571,7 +518,6 @@ namespace OpenGL
                 }
             }
 
-            // ציור מפלצות החילזון (snail)
             if (Snails != null)
             {
                 for (int i = 0; i < Snails.Count; i++)
@@ -580,7 +526,9 @@ namespace OpenGL
                 }
             }
 
+            // moving all to the grahic card
             GL.glFlush();
+            // waiting till the drawing finished
             WGL.wglSwapBuffers(m_uint_DC);
         }
 
@@ -673,15 +621,8 @@ namespace OpenGL
             WorldSkyBox.GenerateTextures();
         }
 
-        /// <summary>
-        /// ממיר קואורדינטות מסך (עכבר) לקואורדינטות OpenGL תלת-מימדיות
-        /// ומציג MessageBox עם התוצאה.
-        /// </summary>
-        /// <param name="mouseX">מיקום X של העכבר על הפאנל</param>
-        /// <param name="mouseY">מיקום Y של העכבר על הפאנל</param>
         public void GetOpenGLCoords(int mouseX, int mouseY)
         {
-            // שליפת המטריצות והViewport הנוכחיים מOpenGL
             double[] modelview = new double[16];
             double[] projection = new double[16];
             int[] viewport = new int[4];
@@ -690,15 +631,12 @@ namespace OpenGL
             GL.glGetDoublev(GL.GL_PROJECTION_MATRIX, projection);
             GL.glGetIntegerv(GL.GL_VIEWPORT, viewport);
 
-            // הפיכת Y כי ב-Windows Y יורד למטה ובOpenGL Y עולה למעלה
             float winX = mouseX;
             float winY = viewport[3] - mouseY;
 
-            // קריאת עומק (Z) מה-depth buffer בנקודה שלחצנו
             float[] depth = new float[1];
             GL.glReadPixels(mouseX, (int)winY, 1, 1, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, depth);
 
-            // המרה מקואורדינטות מסך לקואורדינטות עולם תלת-מימדיות
             double objX = 0, objY = 0, objZ = 0;
             GLUT.gluUnProject(winX, winY, depth[0],
                 modelview, projection, viewport,

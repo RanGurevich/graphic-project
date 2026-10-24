@@ -38,12 +38,12 @@ namespace OpenGL
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA); 
             GL.glGenTextures(6, Textures);
             string[] imagesName = {
-                @"..\..\pics\cube2-4.jpg", // 0: קיר קדמי
-                @"..\..\pics\cube2-4.jpg", // 1: קיר אחורי
-                @"..\..\pics\cube2-4.jpg", // 2: קיר שמאלי
-                @"..\..\pics\cube2-4.jpg", // 3: קיר ימני
-                @"..\..\pics\cube-6.jpg",  // 4: תקרה / שמיים (cube-6)
-                @"..\..\pics\cube-6.jpg",  // 5: רצפה / דשא (cube-1)
+                @"..\..\pics\cube2-4.jpg",
+                @"..\..\pics\cube2-4.jpg",
+                @"..\..\pics\cube2-4.jpg",
+                @"..\..\pics\cube2-4.jpg",
+                @"..\..\pics\cube-6.jpg",
+                @"..\..\pics\cube-6.jpg",
             };
             for (int i = 0; i < 6; i++)
             {
@@ -71,9 +71,6 @@ namespace OpenGL
             isInitialized = true;
         }
 
-        /// <summary>
-        /// מציירת פאה של ה-Skybox עם פריסה מותאמת אישית לפי הרזולוציה ויחס הממדים של התמונה (למניעת מריחה).
-        /// </summary>
         private static void DrawFace(int texIndex,
             float x1, float y1, float z1,
             float x2, float y2, float z2,
@@ -88,13 +85,11 @@ namespace OpenGL
             float uMin, uMax, vMin, vMax;
             if (Math.Abs(aspect - 1.0f) < 0.02f)
             {
-                // תמונה מרובעת (כמו תמונות קובייה 2048x2048) - פריסה רגילה מלאה
                 uMin = 0.0f; uMax = 1.0f;
                 vMin = 0.0f; vMax = 1.0f;
             }
             else if (aspect > 1.0f)
             {
-                // תמונה רחבה (כמו grass.png 1600x1050) - התאמת פריסה לפי יחס הרזולוציה ללא מריחה
                 float span = 0.5f / aspect;
                 uMin = 0.5f - span;
                 uMax = 0.5f + span;
@@ -103,7 +98,6 @@ namespace OpenGL
             }
             else
             {
-                // תמונה צרה/גבוהה
                 float span = 0.5f * aspect;
                 uMin = 0.0f;
                 uMax = 1.0f;
@@ -126,7 +120,6 @@ namespace OpenGL
                 GenerateTextures();
             }
 
-            // הגדרות Skybox: כיבוי תאורה, הפעלת בדיקת עומק אך ביטול כתיבה אליו (כדי שיהיה תמיד ברקע)
             GL.glDisable(GL.GL_LIGHTING);
             GL.glEnable(GL.GL_DEPTH_TEST);
             GL.glDepthMask(0);
@@ -137,19 +130,11 @@ namespace OpenGL
             float floorZ = FloorHeight;
             float ceilZ = CeilingHeight;
 
-            // 1. קיר קדמי (Y = -s) - Textures[0]
             DrawFace(0, +s, -s, floorZ,  -s, -s, floorZ,  -s, -s, ceilZ,  +s, -s, ceilZ);
-
-            // 2. קיר אחורי (Y = +s) - Textures[1]
             DrawFace(1, -s, +s, floorZ,  +s, +s, floorZ,  +s, +s, ceilZ,  -s, +s, ceilZ);
-
-            // 3. קיר שמאלי (X = -s) - Textures[2]
             DrawFace(2, -s, -s, floorZ,  -s, +s, floorZ,  -s, +s, ceilZ,  -s, -s, ceilZ);
-
-            // 4. קיר ימני (X = +s) - Textures[3]
             DrawFace(3, +s, +s, floorZ,  +s, -s, floorZ,  +s, -s, ceilZ,  +s, +s, ceilZ);
 
-            // 5. תקרה / שמיים (Z = ceilZ) - Textures[4] (cube-6.jpg)
             if (angleTexture != 0)
             {
                 GL.glMatrixMode(GL.GL_TEXTURE);
@@ -170,10 +155,8 @@ namespace OpenGL
                 GL.glMatrixMode(GL.GL_MODELVIEW);
             }
 
-            // 6. רצפה / דשא (Z = floorZ) - Textures[5] (cube-1.jpg)
             DrawFace(5, -s, -s, floorZ,  +s, -s, floorZ,  +s, +s, floorZ,  -s, +s, floorZ);
 
-            // שחזור הגדרות OpenGL
             GL.glDisable(GL.GL_TEXTURE_2D);
             GL.glDepthMask(1);
         }
